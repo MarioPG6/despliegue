@@ -1,39 +1,43 @@
-"""Welcome to Reflex! This file outlines the steps to create a basic app."""
-
 import reflex as rx
 
 from rxconfig import config
-
-
-class State(rx.State):
-    """The app state."""
-
-    ...
+from .backend.backend import State
+from .frontend.navbar import navbar
+from .frontend.sidebar import sidebar
+from .frontend.footer import footer
+from .pages import *
 
 
 def index() -> rx.Component:
-    # Welcome Page (Index)
-    return rx.container(
-        rx.color_mode.button(position="top-right"),
-        rx.vstack(
-            rx.heading("Welcome to Reflex!", size="9"),
-            rx.text(
-                "Get started by editing ",
-                rx.code(f"{config.app_name}/{config.app_name}.py"),
-                size="5",
+    return rx.vstack(        
+        navbar(),         
+        rx.hstack(
+            sidebar(),
+            rx.box(
+                rx.text("Aquí va el contenido."),
+                bg=rx.color("accent", 1),
+                width="100%",
+                height="100%",
+                padding="2em",
             ),
-            rx.link(
-                rx.button("Check out our docs!"),
-                href="https://reflex.dev/docs/getting-started/introduction/",
-                is_external=True,
-            ),
-            spacing="5",
-            justify="center",
-            min_height="85vh",
+            width="100%",
+            height="100%",
+            align_items="stretch",
         ),
-        rx.logo(),
+        rx.box( 
+            footer(),
+            width="100%",
+            bg=rx.color("black", 1), 
+        ),             
+        height="100vh",        
+        spacing="0",
+        bg=rx.color("accent", 1),
+        width="100%",     
     )
-
+    
+   
 
 app = rx.App()
 app.add_page(index)
+app.add_page(page1, route='/page1')
+app.add_page(contact, route='/contact')
