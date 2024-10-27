@@ -29,7 +29,7 @@ def sidebar_item(
 
 def sidebar_items() -> rx.Component:
     return rx.vstack(
-        sidebar_item("Reparaciones", "wrench", "/#"),
+        sidebar_item("Reparaciones", "wrench", "/reparaciones"),
         sidebar_item("Cerrajería", "key-round", "/#"),
         sidebar_item("Instalaciones", "drill", "/#"),
         sidebar_item("Pintura", "paint-roller", "/#"),

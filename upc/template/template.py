@@ -1,18 +1,21 @@
+from typing import Callable
+
 import reflex as rx
+
 from ..frontend.navbar import navbar
 from ..frontend.sidebar import sidebar
 from ..frontend.footer import footer
 
 
-
-def page1() -> rx.Component:
-
+def template(
+    page: Callable[[], rx.Component]
+) -> rx.Component:
     return rx.vstack(        
         navbar(),         
         rx.hstack(
             sidebar(),
             rx.box(
-                rx.text("Welcome to page1."),
+                rx.container(page()),
                 bg=rx.color("accent", 1),
                 width="100%",
                 height="100%",

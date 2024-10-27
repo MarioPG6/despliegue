@@ -1,12 +1,8 @@
 import reflex as rx
 
-from rxconfig import config
-from .backend.backend import State
 from .frontend.navbar import navbar
 from .frontend.sidebar import sidebar
 from .frontend.footer import footer
-from .pages import *
-
 
 def index() -> rx.Component:
     return rx.vstack(        
@@ -39,5 +35,3 @@ def index() -> rx.Component:
 
 app = rx.App()
 app.add_page(index)
-app.add_page(page1, route='/page1')
-app.add_page(contact, route='/contact')

@@ -42,10 +42,10 @@ def navbar() -> rx.Component:
                         "Buscar", "search", "/#"
                     ),
                     navbar_icons_item(
-                        "Regisístrate", "user-round-plus", "/#"
+                        "Regisístrate", "user-round-plus", "/registro"
                     ),
                     navbar_icons_item(
-                        "Contáctanos", "mail", "/contact"
+                        "Contáctanos", "mail", "/contacto"
                     ),
                     spacing="6",
                 ),
