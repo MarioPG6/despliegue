@@ -11,6 +11,8 @@ from .pages import clases
 from .pages import electricistas
 from .pages import aseo
 from .pages import plomeria
+from .pages import admin
+
 
 _all_ = [
     'contacto',
@@ -26,4 +28,5 @@ _all_ = [
     'electricistas',
     'aseo',
     'plomeria',
+    'admin',
 ]
