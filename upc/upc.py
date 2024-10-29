@@ -32,7 +32,8 @@ def index() -> rx.Component:
         spacing="0",
         bg=rx.color("accent", 1),
         width="100%",
-        on_mount=auth.AuthState.process_authentication,  
+        on_mount=auth.AuthState.process_authentication, 
+        
     ) 
     
    
