@@ -70,4 +70,85 @@ class State(rx.State):
                    Trabajador.id == self.user_id
                 )
             ).all()
-            self.users = users        
+            self.users = users
+            
+    def get_users_cerrajeria(self):
+        with rx.session() as session:
+            users = session.exec(
+                Trabajador.select().where(
+                    Trabajador.categoria == "Cerrajería"
+                )
+            ).all()
+            self.users = users
+
+    def get_users_instalaciones(self):
+        with rx.session() as session:
+            users = session.exec(
+                Trabajador.select().where(
+                    Trabajador.categoria == "Instalaciones"
+                )
+            ).all()
+            self.users = users
+
+    def get_users_pintura(self):
+        with rx.session() as session:
+            users = session.exec(
+                Trabajador.select().where(
+                    Trabajador.categoria == "Pintura"
+                )
+            ).all()
+            self.users = users
+
+    def get_users_obras(self):
+        with rx.session() as session:
+            users = session.exec(
+                Trabajador.select().where(
+                    Trabajador.categoria == "Obras"
+                )
+            ).all()
+            self.users = users
+
+    def get_users_belleza_peluqueria(self):
+        with rx.session() as session:
+            users = session.exec(
+                Trabajador.select().where(
+                    Trabajador.categoria == "Belleza y Peluquería"
+                )
+            ).all()
+            self.users = users
+
+    def get_users_clases(self):
+        with rx.session() as session:
+            users = session.exec(
+                Trabajador.select().where(
+                    Trabajador.categoria == "Clases"
+                )
+            ).all()
+            self.users = users
+
+    def get_users_electricistas(self):
+        with rx.session() as session:
+            users = session.exec(
+                Trabajador.select().where(
+                    Trabajador.categoria == "Electricistas"
+                )
+            ).all()
+            self.users = users
+
+    def get_users_aseo(self):
+        with rx.session() as session:
+            users = session.exec(
+                Trabajador.select().where(
+                    Trabajador.categoria == "Aseo"
+                )
+            ).all()
+            self.users = users
+
+    def get_users_plomeria(self):
+        with rx.session() as session:
+            users = session.exec(
+                Trabajador.select().where(
+                    Trabajador.categoria == "Plomería"
+                )
+            ).all()
+            self.users = users                
