@@ -1,11 +1,14 @@
 import reflex as rx
+from .backend import auth
 
 from .frontend.navbar import navbar
 from .frontend.sidebar import sidebar
 from .frontend.footer import footer
 
+
 def index() -> rx.Component:
-    return rx.vstack(        
+
+    return rx.vstack(
         navbar(),         
         rx.hstack(
             sidebar(),
@@ -28,8 +31,9 @@ def index() -> rx.Component:
         height="100vh",        
         spacing="0",
         bg=rx.color("accent", 1),
-        width="100%",     
-    )
+        width="100%",
+        on_mount=auth.AuthState.process_authentication,  
+    ) 
     
    
 

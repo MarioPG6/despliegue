@@ -1,4 +1,5 @@
 import reflex as rx
+from ..backend import auth
 
 def navbar_icons_item(text: str, icon: str, url: str) -> rx.Component:
     return rx.link(
@@ -44,9 +45,19 @@ def navbar() -> rx.Component:
                     navbar_icons_item(
                         "Regisístrate", "user-round-plus", "/registro"
                     ),
-                    navbar_icons_item(
-                        "Contáctanos", "mail", "/contacto"
+                    rx.cond(
+                        auth.AuthState.is_authenticated,                                           
+                        navbar_icons_item("Contáctanos", "mail", "/contacto"),            
                     ),
+                    #navbar_icons_item(
+                        #"Contáctanos", "mail", "/contacto"
+                    #),
+                    rx.cond(
+                        auth.AuthState.is_authenticated,                                           
+                        rx.button("Logout", on_click=auth.AuthState.perform_logout),                            
+                        rx.button("Login", on_click=auth.AuthState.initiate_login),
+                    ),
+                    #rx.button(rx.icon('user-round'), on_click=auth.AuthState.initiate_login),
                     spacing="6",
                 ),
                 justify="between",
@@ -83,6 +94,11 @@ def navbar() -> rx.Component:
                         ),
                         navbar_icons_menu_item(
                             "Contáctanos", "mail", "/#"
+                        ),
+                        rx.cond(
+                            auth.AuthState.is_authenticated,                                           
+                            rx.button("Logout", on_click=auth.AuthState.perform_logout),                            
+                            rx.button("Login", on_click=auth.AuthState.initiate_login),
                         ),
                     ),
                     justify="end",

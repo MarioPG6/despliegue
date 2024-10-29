@@ -4,7 +4,7 @@ from ..template.template import template
 from ..backend.state import State
 
 
-@rx.page(route="/contacto")
+@rx.page(route="/contacto",title="Contáctanos")
 @template
 def contacto() -> rx.Component:
 

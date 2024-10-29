@@ -9,7 +9,7 @@ class Detalles(rx.State):
     users: list['Trabajador']  = [] 
 
 
-@rx.page(route="/detalles/[id]",on_load=State.get_user_by_id)
+@rx.page(route="/detalles/[id]",title="Detalles de trabajadores",on_load=State.get_user_by_id)
 @template
 def detalles() -> rx.Component:
     return rx.vstack(

@@ -5,7 +5,7 @@ from ..backend.state import State
 
 
 
-@rx.page(route="/registro")
+@rx.page(route="/registro",title="Registro")
 @template
 def registro() -> rx.Component:
 

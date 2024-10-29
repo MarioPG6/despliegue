@@ -38,7 +38,7 @@ def row_table(user: Trabajador) -> rx.Component:
         rx.table.cell(rx.hstack(rx.button(rx.icon("pencil")),on_click=rx.redirect(f"/detalles/{user.id}"))),        
     )
 
-@rx.page(route="/reparaciones",on_load=State.get_users_reparaciones)
+@rx.page(route="/reparaciones",title="Reparaciones",on_load=State.get_users_reparaciones)
 @template
 def reparaciones() -> rx.Component:
 
