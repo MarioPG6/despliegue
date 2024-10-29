@@ -1,43 +1,42 @@
 import reflex as rx
-
 from ..template.template import template
 from ..backend.state import State
 from ..backend.models import Trabajador
 
-class Aseo(rx.State):
-    users: list['Trabajador'] = []
+class Reparaciones(rx.State):
+    trabajador: list['Trabajador'] = []
 
-def table(list_users: list[Trabajador] = []) -> rx.Component:
-    return rx.table.root(
-        rx.table.header(
-            rx.table.row(
-                rx.table.column_header_cell("Nombre"),
-                rx.table.column_header_cell("Correo"),
-                rx.table.column_header_cell("Teléfono"),
-                rx.table.column_header_cell("Localidad"),
-                rx.table.column_header_cell("Dirección")
-            )
+def user_card(user: Trabajador) -> rx.Component:
+    """Define una tarjeta cuadrada para cada usuario de la categoría Reparaciones."""
+    return rx.card(
+        rx.vstack(
+            rx.icon("wrench", size=40, color="gray"), 
+            rx.text(user.nombre_trabajador, font_size="20px", font_weight="bold"),
+            rx.text(user.descripcion, font_size="16px", color="gray"),
+            rx.button("Ver detalles", on_click=rx.redirect(f"/detalles/{user.id}")),
+            spacing="10px",
+            align="center",
         ),
-        rx.table.body(
-            rx.foreach(list_users, row_table)
-        )
+        padding="20px",
+        border="1px solid #ddd",
+        border_radius="10px",
+        width="200px",
+        height="250px",
+        shadow="lg",
     )
 
-def row_table(user: Trabajador) -> rx.Component:
-    return rx.table.row(
-        rx.table.cell(user.nombre_trabajador),
-        rx.table.cell(user.correo_trabajador),
-        rx.table.cell(user.telefono_trabajador),
-        rx.table.cell(user.localidad_trabajador),
-        rx.table.cell(user.direccion),
-        rx.table.cell(rx.hstack(rx.button(rx.icon("pencil")), on_click=rx.redirect(f"/detalles/{user.id}"))),
-    )
 
-@rx.page(route="/aseo", title="Aseo", on_load=State.get_users_aseo)
+@rx.page(route="/aseo", on_load=State.get_users_aseo)
 @template
 def aseo() -> rx.Component:
-    return rx.hstack(
-        rx.heading("Aseo"),
-        table(State.users),
-        direction="column",
+    """Página principal de aseo con tarjetas para cada usuario."""
+    return rx.vstack(
+        rx.heading("aseo", icon="wrench"),  
+        rx.hstack(
+            rx.foreach(State.users, user_card), 
+            spacing="20px",
+            wrap="wrap", 
+        ),
+        align="start",
+        spacing="30px",
     )

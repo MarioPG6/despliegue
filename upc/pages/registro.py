@@ -2,13 +2,15 @@ import reflex as rx
 
 from ..template.template import template
 from ..backend.state import State
+from ..backend import auth
+
 
 
 
 @rx.page(route="/registro",title="Registro")
 @template
 def registro() -> rx.Component:
-
+ 
  return rx.card(  
     rx.form(
         rx.vstack(
@@ -18,11 +20,11 @@ def registro() -> rx.Component:
             name="nombre_trabajador",
             required=True,
             width="50%",    
-        ),
+        ),        
         rx.input(
             placeholder="Digite su correo",
             name="correo_trabajador",
-            width="50%",
+            width="50%",        
         ),
         rx.input(
             placeholder="Digite su teléfono",
