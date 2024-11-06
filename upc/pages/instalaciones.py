@@ -26,14 +26,14 @@ def user_card(user: Trabajador) -> rx.Component:
     )
 
 
-@rx.page(route="/instalaciones", on_load=State.get_users_instalaciones)
+@rx.page(route="/instalaciones", on_load=State.get_trabajadores_by_categoria("Instalaciones"))
 @template
 def instalaciones() -> rx.Component:
     """Página principal de instalaciones con tarjetas para cada usuario."""
     return rx.vstack(
         rx.heading("instalaciones", icon="wrench"),  
         rx.hstack(
-            rx.foreach(State.users, user_card), 
+            rx.foreach(State.trabajadores, user_card), 
             spacing="20px",
             wrap="wrap", 
         ),

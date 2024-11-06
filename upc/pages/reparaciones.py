@@ -4,7 +4,7 @@ from ..backend.state import State
 from ..backend.models import Trabajador
 
 class Reparaciones(rx.State):
-    trabajador: list['Trabajador'] = []
+    trabajadores: list['Trabajador'] = []
 
 def user_card(user: Trabajador) -> rx.Component:
     """Define una tarjeta cuadrada para cada usuario de la categoría Reparaciones."""
@@ -26,17 +26,23 @@ def user_card(user: Trabajador) -> rx.Component:
     )
 
 
-@rx.page(route="/reparaciones", on_load=State.get_users_reparaciones)
+@rx.page(route="/reparaciones", on_load=State.get_trabajadores_by_categoria("Reparaciones"))
 @template
 def reparaciones() -> rx.Component:
     """Página principal de Reparaciones con tarjetas para cada usuario."""
-    return rx.vstack(
-        rx.heading("Reparaciones", icon="wrench"),  
+    return rx.cond(
+        (State.role_user == "usuario") & (State.authenticated),
+        rx.vstack(
+        rx.heading("Reparaciones", icon="wrench"),          
         rx.hstack(
-            rx.foreach(State.users, user_card), 
+            rx.foreach(State.trabajadores, user_card), 
             spacing="20px",
             wrap="wrap", 
         ),
         align="start",
-        spacing="30px",
+        spacing="30px",            
+    ),
+        rx.text("Usuario no autorizado")
     )
+        
+       

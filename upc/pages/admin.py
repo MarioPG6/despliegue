@@ -1,8 +1,9 @@
 import reflex as rx
 from ..backend.state import State
-from ..backend.models import Trabajador, Contacto
+from ..backend.models import Trabajador, Contacto, Login
 from ..template.template import template
-from ..backend import auth
+from sqlmodel import select
+from sqlalchemy.orm import selectinload
 
 
 
@@ -17,13 +18,18 @@ class Admin(rx.State):
         self.trabajadores = self.get_trabajadores()
         self.contactos = self.get_contactos()
         self.datos_cargados = True
+      
 
     # Método para recuperar trabajadores de la base de datos con filtro
     def get_trabajadores(self):
         with rx.session() as session:
-            query = Trabajador.select()
+            query = (
+                select(Trabajador)
+                .join(Login, Trabajador.id == Login.worker_id)
+                .options(selectinload(Trabajador.login))  # cargar la relación `login`
+            )
             if self.filtro_email:
-                query = query.where(Trabajador.correo_trabajador.contains(self.filtro_email))
+                query = query.where(Login.correo.contains(self.filtro_email))
             return session.exec(query).all() or []
 
     # Método para recuperar contactos de la base de datos con filtro
@@ -43,7 +49,7 @@ class Admin(rx.State):
     # Método para eliminar un trabajador
     def delete_trabajador(self, trabajador_id: int):
         with rx.session() as session:
-            trabajador = session.exec(Trabajador.select().where(Trabajador.id == trabajador_id)).first()
+            trabajador = session.exec(select(Trabajador).where(Trabajador.id == trabajador_id)).first()
             if trabajador:
                 session.delete(trabajador)
                 session.commit()
@@ -87,7 +93,7 @@ def table_trabajadores(trabajadores: list[Trabajador]) -> rx.Component:
 def row_trabajador(trabajador: Trabajador) -> rx.Component:
     return rx.table.row(
         rx.table.cell(trabajador.nombre_trabajador, style={"max-width": "100px", "overflow": "hidden", "text-overflow": "ellipsis"}),
-        rx.table.cell(trabajador.correo_trabajador, style={"max-width": "150px", "overflow": "hidden", "text-overflow": "ellipsis"}),
+        rx.table.cell(trabajador.login.correo, style={"max-width": "150px", "overflow": "hidden", "text-overflow": "ellipsis"}),
         rx.table.cell(trabajador.telefono_trabajador, style={"max-width": "100px", "overflow": "hidden", "text-overflow": "ellipsis"}),
         rx.table.cell(trabajador.localidad_trabajador, style={"max-width": "100px", "overflow": "hidden", "text-overflow": "ellipsis"}),
         rx.table.cell(trabajador.categoria, style={"max-width": "100px", "overflow": "hidden", "text-overflow": "ellipsis"}),
@@ -149,9 +155,8 @@ def row_contacto(contacto: Contacto) -> rx.Component:
 @template
 def admin() -> rx.Component:
     return rx.cond(
-        # Verificar si está autenticado
-        (auth.AuthState.user_details['email'] == 'mariostteven@gmail.com') |
-        (auth.AuthState.user_details['email'] == 'santurron2004@gmail.com'), 
+        # Verificar si está autenticado        
+        (State.role_user == 'usuario') & (State.authenticated), 
         # Si está autorizado, renderizar la página de administración
         rx.vstack(
             rx.heading("Administración", font_size="24px"),        

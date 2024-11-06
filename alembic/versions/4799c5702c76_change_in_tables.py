@@ -1,8 +1,8 @@
-"""empty message
+"""change in tables
 
-Revision ID: 28a9d264a9d9
+Revision ID: 4799c5702c76
 Revises: 
-Create Date: 2024-10-26 14:25:25.920234
+Create Date: 2024-11-03 08:23:55.506908
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 import sqlmodel
 
 # revision identifiers, used by Alembic.
-revision: str = '28a9d264a9d9'
+revision: str = '4799c5702c76'
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -29,19 +29,26 @@ def upgrade() -> None:
     )
     op.create_table('trabajador',
     sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('nombre', sqlmodel.sql.sqltypes.AutoString(), nullable=True),
-    sa.Column('correo', sqlmodel.sql.sqltypes.AutoString(), nullable=True),
-    sa.Column('telefono', sqlmodel.sql.sqltypes.AutoString(), nullable=True),
+    sa.Column('nombre_trabajador', sqlmodel.sql.sqltypes.AutoString(), nullable=True),
+    sa.Column('correo_trabajador', sqlmodel.sql.sqltypes.AutoString(), nullable=True),
+    sa.Column('telefono_trabajador', sqlmodel.sql.sqltypes.AutoString(), nullable=True),
+    sa.Column('localidad_trabajador', sqlmodel.sql.sqltypes.AutoString(), nullable=True),
     sa.Column('categoria', sqlmodel.sql.sqltypes.AutoString(), nullable=True),
     sa.Column('direccion', sqlmodel.sql.sqltypes.AutoString(), nullable=True),
     sa.Column('descripcion', sqlmodel.sql.sqltypes.AutoString(), nullable=True),
+    sa.Column('role', sqlmodel.sql.sqltypes.AutoString(), nullable=False),
+    sa.Column('is_verified', sa.Boolean(), nullable=False),
+    sa.Column('password_trabajador', sqlmodel.sql.sqltypes.AutoString(), nullable=True),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('usuario',
     sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('nombre', sqlmodel.sql.sqltypes.AutoString(), nullable=True),
-    sa.Column('correo', sqlmodel.sql.sqltypes.AutoString(), nullable=True),
-    sa.Column('localidad', sqlmodel.sql.sqltypes.AutoString(), nullable=True),
+    sa.Column('nombre_usuario', sqlmodel.sql.sqltypes.AutoString(), nullable=True),
+    sa.Column('correo_usuario', sqlmodel.sql.sqltypes.AutoString(), nullable=True),
+    sa.Column('localidad_usuario', sqlmodel.sql.sqltypes.AutoString(), nullable=True),
+    sa.Column('role', sqlmodel.sql.sqltypes.AutoString(), nullable=False),
+    sa.Column('is_verified', sa.Boolean(), nullable=False),
+    sa.Column('password_usuario', sqlmodel.sql.sqltypes.AutoString(), nullable=True),
     sa.PrimaryKeyConstraint('id')
     )
     # ### end Alembic commands ###

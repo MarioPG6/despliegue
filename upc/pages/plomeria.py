@@ -4,7 +4,7 @@ from ..backend.state import State
 from ..backend.models import Trabajador
 
 class Reparaciones(rx.State):
-    trabajador: list['Trabajador'] = []
+    trabajadores: list['Trabajador'] = []
 
 def user_card(user: Trabajador) -> rx.Component:
     """Define una tarjeta cuadrada para cada usuario de la categoría Reparaciones."""
@@ -26,14 +26,14 @@ def user_card(user: Trabajador) -> rx.Component:
     )
 
 
-@rx.page(route="/plomeria", on_load=State.get_users_plomeria)
+@rx.page(route="/plomeria", on_load=State.get_trabajadores_by_categoria("Plomería"))
 @template
 def plomeria() -> rx.Component:
     """Página principal de plomeria con tarjetas para cada usuario."""
     return rx.vstack(
         rx.heading("plomeria", icon="wrench"),  
         rx.hstack(
-            rx.foreach(State.users, user_card), 
+            rx.foreach(State.trabajadores, user_card), 
             spacing="20px",
             wrap="wrap", 
         ),
