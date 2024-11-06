@@ -49,28 +49,8 @@ class State(rx.State):
     #Variable para obtener el token de la url /verify
     @rx.var
     def get_token(self):
-        return self.router.page.params.get("jwt_token", "")    
-    
-    # @rx.var
-    # def usuario_invalido(self) -> bool:
-    #     return not (re.match (r"^[\w\.-]+@[a-zA-Z\d\.-]+\.[a-zA-Z]{2,}$", self.user_name))
-    
-    # @rx.var
-    # def usuario_vacio(self) -> bool:
-    #     return not self.user_name.strip()
-    
-    # @rx.var
-    # def password_vacio(self) -> bool:
-    #     return not self.password.strip()
-    
-    @rx.var
-    def validar_campos(self) -> bool:
-        return (
-            self.usuario_invalido
-            #or self.usuario_vacio
-            or self.password_vacio
-        )
-       
+        return self.router.page.params.get("jwt_token", "") 
+   
 
     ######METODO PARA GENERAR TOKEN JWT######
     '''
@@ -402,8 +382,13 @@ class State(rx.State):
             self.trabajadores = query      
     ######FIN CONSULTAS PARA OBTENER TRABAJADORES POR CATEGORÍAS######
 
-    ######METODO PARA REGISTRO DE USUARIOS###############
 
+
+    ######METODO PARA REGISTRO DE USUARIOS###############
+    '''
+    Este método sirve para registrar los usuarios nuevos en la base de datos
+    genera el token jwt e invoca el método para enviar el link de validación
+    '''
     def register_user(self, form_data: dict):
 
         nombre_usuario = form_data.get('nombre_usuario')
@@ -470,9 +455,14 @@ class State(rx.State):
             }, self.SECRET_KEY, algorithm="HS256")
             
             # Enviar el correo de verificación
-            self.send_verification_email(correo_usuario, token)  
+            self.send_verification_email(correo_usuario, token)
+    ######FIN METODO PARA REGISTRO DE USUARIOS###############          
 
 
+    ######METODO PARA ENVIO DE EMAIL###############
+    '''
+    Este método sirve para enviar correo al usuario el link de verificación
+    '''
     def send_verification_email(self, email, token):
         verification_link = f"http://localhost:3000/verify/{token}"
         msg = EmailMessage()
@@ -485,20 +475,10 @@ class State(rx.State):
             server.starttls()
             server.login("santurron2004@gmail.com", self.GMAIL_KEY)
             server.send_message(msg)
-
-
+    ######FIN METODO PARA ENVIO DE EMAIL###############        
     
-    def validacion_usuario(self, usuario: str):
-
-        verificacion = not (re.match(r"^[\w\.-]+@[a-zA-Z\d\.-]+\.[a-zA-Z]{2,}$", usuario))
-        self.usuario_invalido = verificacion
-
-    def validacion_password(self, password: str):
-
-        verificacion = not password.strip()
-        self.password_vacio = verificacion 
-
-
+    
+    ####METODO VALIDACION DE CREDENCIALES###########
     def validar_credenciales(self, email: str, password: str):
 
         print("Inicia proceso de validación de credenciales")        
@@ -519,15 +499,26 @@ class State(rx.State):
                self.mensaje_error_contraseña = "Contraseña correcta" 
                self.error_credenciales = False
         else:
-               self.mensaje_error_contraseña = "Usuario no registrado"              
+               self.mensaje_error_contraseña = "Usuario no registrado" 
+      ####FIN METODO VALIDACION DE CREDENCIALES###########                      
 
-        # if check_password_hash(login_record.password, password) == False: 
-        #     self.error_credenciales = True
-        #     self.mensaje_error_contraseña = "Contraseña incorrecta"
-    
+        
+    ####VALIDACIONES Y MENSAJES###########
     def ocultar_mensaje_error(self):
         time.sleep(3)
         self.mensaje_error_contraseña = ""
         # Asegúrate de notificar al sistema de la actualización del estado
         threading.Thread(target=self.ocultar_mensaje_error).start()
+
+    def validacion_usuario(self, usuario: str):
+
+        verificacion = not (re.match(r"^[\w\.-]+@[a-zA-Z\d\.-]+\.[a-zA-Z]{2,}$", usuario))
+        self.usuario_invalido = verificacion
+
+    def validacion_password(self, password: str):
+
+        verificacion = not password.strip()
+        self.password_vacio = verificacion
+     ####FIN VALIDACIONES Y MENSAJES###########    
+    
         

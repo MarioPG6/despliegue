@@ -13,7 +13,6 @@ from .pages import electricistas
 from .pages import aseo
 from .pages import plomeria
 from .pages import admin
-from .pages import tipo_usuario
 from .pages import verify
 from .pages import login
 
@@ -34,7 +33,6 @@ _all_ = [
     'plomeria',
     'admin',
     'registro_usuario',
-    'tipo_usuario',
     'veirfy',
     'login',
 ]

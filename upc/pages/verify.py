@@ -2,13 +2,6 @@ import reflex as rx
 
 from ..template.template import template
 from ..backend.state import State
-#from ..backend import auth
-#from requests import request
-#from ..auth.register import register_user
-#from ..auth.verify import verify_account
-import jwt
-#from ..backend.models import Usuario, Trabajador
-#import ast
 from ..backend.state import State
 
 
