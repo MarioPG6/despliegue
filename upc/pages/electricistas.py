@@ -3,8 +3,7 @@ from ..template.template import template
 from ..backend.state import State
 from ..backend.models import Trabajador
 
-class Reparaciones(rx.State):
-    trabajadores: list['Trabajador'] = []
+
 
 def user_card(user: Trabajador) -> rx.Component:
     """Define una tarjeta cuadrada para cada usuario de la categoría Reparaciones."""

@@ -5,8 +5,7 @@ from ..backend.state import State
 from ..backend.models import Trabajador, Comentario
 
    
-class Detalles(rx.State):
-    trabajadores: list['Trabajador']  = []
+
    
 
 

@@ -22,8 +22,8 @@ from .models import Comentario
     
 
 class State(rx.State): 
-    trabajadores: list['Trabajador']  = [] 
-    usuarios: list['Usuario']  = [] 
+    trabajadores: list[Trabajador]  = [] 
+    usuarios: list[Usuario]  = [] 
     comentarios: list[Comentario] = []
     form_data: dict = {}    
     submit_msg: str
