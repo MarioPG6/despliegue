@@ -2,9 +2,7 @@ import reflex as rx
 import asyncio
 import jwt
 import datetime
-import time
 import re
-import threading
 import smtplib
 from werkzeug.security import check_password_hash
 from werkzeug.security import generate_password_hash
@@ -14,16 +12,20 @@ from sqlalchemy.orm import selectinload
 
 
 
+
 from .models import Trabajador
 from .models import Usuario
 from .models import Login
 from .models import Contacto
+from .models import Comentario
+
     
 
 class State(rx.State): 
-    trabajadores: list['Trabajador']  = []  
-    form_data: dict = {}
-    did_submit: bool = False
+    trabajadores: list['Trabajador']  = [] 
+    usuarios: list['Usuario']  = [] 
+    comentarios: list[Comentario] = []
+    form_data: dict = {}    
     submit_msg: str
     token: str = ""
     verified: bool = False
@@ -37,8 +39,45 @@ class State(rx.State):
     role_user: str
     password: str
     user_email: str
+    login_id: str
+    user_entered_username: str
+    user_entered_email: str
+    user_entered_password: str
+    user_entered_password2: str
+    user_entered_telefono: str
+    user_entered_direccion: str
+    user_entered_descripcion: str
+    user_entered_localidad = ""
+    user_entered_categoria = ""
+    texto_comentario = ""    
+    comentarios_cargados: bool = False
+    nombre_usuario = ""
+    loged_in: bool = False
+    loader: bool = False
+    registro: bool = False
+    mensaje_registro: str    
+  
+
+   
+
     SECRET_KEY = "e85a85be384f74c22bbe0b93ba3404fe3ad75e2346c061c38ba4f77ea6971d35"
     GMAIL_KEY = "ycrp jrgi ekuw gpdo"
+
+    
+            
+    def select_localidad(self, value):
+        self.user_entered_localidad = value
+
+    @rx.var
+    def is_localidad_empty(self) -> bool:
+        return self.user_entered_localidad == ""
+
+    def select_categoria(self, value):
+        self.user_entered_categoria = value
+
+    @rx.var
+    def is_categoria_empty(self) -> bool:
+        return self.user_entered_categoria == ""      
    
 
     #Variable para obtener id de usuario de la url /detalles
@@ -50,7 +89,100 @@ class State(rx.State):
     @rx.var
     def get_token(self):
         return self.router.page.params.get("jwt_token", "") 
-   
+    
+
+    @rx.var
+    def invalid_email(self) -> bool:        
+           
+        return not re.match(
+            r"[^@]+@[^@]+\.[^@]+", self.user_entered_email
+        )
+         
+     
+    @rx.var
+    def password_empty(self) -> bool:
+        return not self.user_entered_password.strip()
+    
+    @rx.var
+    def password2_empty(self) -> bool:
+        return not self.user_entered_password2.strip()
+    
+    @rx.var
+    def email_empty(self) -> bool:
+        return not self.user_entered_email.strip()
+    
+    @rx.var
+    def username_empty(self) -> bool:
+        return not self.user_entered_username.strip()
+    
+    @rx.var
+    def username_telefono(self) -> bool:
+        return not self.user_entered_telefono.strip()
+    
+    @rx.var
+    def username_direccion(self) -> bool:
+        return not self.user_entered_direccion.strip()
+    
+    @rx.var
+    def username_descripcion(self) -> bool:
+        return not self.user_entered_descripcion.strip()
+    
+    
+    @rx.var
+    def password_verify(self) -> bool:        
+        return self.user_entered_password != self.user_entered_password2
+    
+    @rx.var
+    def input_invalid(self) -> bool:
+        return (
+            self.invalid_email
+            or self.email_empty
+            or self.password_empty
+           
+        )
+    
+    @rx.var
+    def input_invalid_usuarios(self) -> bool:
+        return (
+            self.invalid_email
+            or self.email_empty
+            or self.password_empty
+            or self.password2_empty
+            or self.password_verify
+            or self.email_exists
+            or self.username_empty
+            or self.is_localidad_empty
+        )
+    
+    @rx.var
+    def input_invalid_trabajadores(self) -> bool:
+        return (
+            self.invalid_email
+            or self.email_empty
+            or self.password_empty
+            or self.password2_empty
+            or self.password_verify
+            or self.email_exists
+            or self.username_empty
+            or self.username_telefono
+            or self.username_direccion
+            or self.username_descripcion
+            or self.is_localidad_empty
+            or self.is_categoria_empty
+        )
+    
+    @rx.var
+    def email_exists(self) -> bool:
+        
+        if self.user_entered_email:
+            with rx.session() as session:
+                query = Login.select().where(Login.correo == self.user_entered_email)
+                return session.exec(query).first() is not None                
+        return False
+
+
+    def loader_status(self):
+        self.loader = True 
 
     ######METODO PARA GENERAR TOKEN JWT######
     '''
@@ -58,7 +190,7 @@ class State(rx.State):
     luego genera el token y lo almacena en la variable de estado 'token' y llama
     al final llama método decode_token para inciar la decodificación del mismo.
     '''
-    def generate_token(self, user_id, name, email, role):
+    def generate_token(self, user_id, name, email, role, login_id):
 
         print("Inicia proceso generación de token")
 
@@ -66,12 +198,14 @@ class State(rx.State):
         user_name = str(name)
         email = str(email)
         role = str(role)
+        login_id = str(login_id)
 
         token = jwt.encode({
             'user_id': user_id,
             'email': email,
             'role': role,
             'nombre': user_name,
+            'login_id': login_id,
             'exp': datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(hours=24),
         }, self.SECRET_KEY, algorithm="HS256")
         
@@ -105,12 +239,14 @@ class State(rx.State):
             self.role_user = decoded_data['role']
             self.user_name = decoded_data['nombre']
             self.user_email = decoded_data['email']
+            self.login_id = decoded_data['login_id']
             self.authenticated = True
 
             print(f"ID decodificado: {self.id_user}")
             print(f"role decodificado: {self.role_user}")
             print(f"nombre decodificado: {self.user_name}")
             print(f"correo decodificado: {self.user_email}")
+            print(f"login id: {self.login_id}")
             print(f"Autenticado: {self.authenticated}")
 
             return decoded_data
@@ -130,6 +266,7 @@ class State(rx.State):
     si encuentra la cuenta y está verificada llama al método generate_token para crear un nuevo token jwt
     de inicio de sesión para el usuario
     '''
+    
     def login(self, email: str, password: str):
 
         print("Inicia proceso de Login")        
@@ -140,24 +277,29 @@ class State(rx.State):
               Login.select().where(Login.correo == email)
             ).first()
 
+        
         if login_record and check_password_hash(login_record.password, password):
             if login_record.is_verified:
                 if login_record.user_id:
                     # Manejar el inicio de sesión de Usuario
                     user = session.get(Usuario, login_record.user_id)
-                    self.generate_token(login_record.id, user.nombre_usuario, login_record.correo, "usuario")
+                    self.generate_token(login_record.id, user.nombre_usuario, login_record.correo, "usuario", login_record.user_id)
                     print(f"Nuevo Token generado para usuario: {self.token}")
+                    
                        
                 elif login_record.worker_id:
                     # Manejar el inicio de sesión de Trabajador
                     worker = session.get(Trabajador, login_record.worker_id)
-                    self.generate_token(login_record.id, worker.nombre_trabajador, login_record.correo, "trabajador")
+                    self.generate_token(login_record.id, worker.nombre_trabajador, login_record.correo, "trabajador", login_record.worker_id)
                     print(f"Nuevo Token generado para trabajador: {self.token}")
-                         
+                    
+                self.loged_in = True         
             else:
                 print("Usuario o trabajador no verificado")
         else:
             print("Credenciales incorrectas")
+
+         
            
     ######FIN METODO INICIO DE SESION(LOGIN)######        
 
@@ -172,7 +314,13 @@ class State(rx.State):
         if self.token:           
             self.token = ""  # Limpiar el token de la variable de estado
             self.id_user = ""  # Limpiar el ID de usuario
-            self.authenticated = False # Pasara autenticado a False          
+            self.user_name = "" # Limpiar el usuario
+            self.authenticated = False # Pasara autenticado a False  
+            self.loader = False # Pasar loader a False
+            self.mensaje_error_contraseña = ""
+            self.mensaje_registro = ""
+            self.login_id = ""
+                 
        
         print("Logout realizado")
     ######FIN METODO CIERRE DE SESION(LOGOUT)######    
@@ -267,7 +415,6 @@ class State(rx.State):
     async def handle_contacto(self, form_data: dict):
 
         self.form_data = form_data
-        self.did_submit = True
 
         # Crear un diccionario limpiando los valores vacíos o None
         data = {k: v for k, v in form_data.items() if v not in ("", None)}
@@ -278,12 +425,9 @@ class State(rx.State):
                 **data
             )
         session.add(db_entry)
-        session.commit() 
+        session.commit()
+        yield rx.toast.success("Gracias por enviar sus comentarios!") 
 
-        yield # Liberar el control temporalmente
-        await asyncio.sleep(2)
-        self.did_submit = False
-        yield # Finalizar el proceso
     ######FIN METODO CONTACTO######        
     
 
@@ -296,7 +440,6 @@ class State(rx.State):
     async def handle_registro_usuario(self, form_data: dict):
 
         self.form_data = form_data
-        self.did_submit = True
         
         # Crear un diccionario limpiando los valores vacíos o None
         data = {k: v for k, v in form_data.items() if v not in ("", None)}
@@ -307,10 +450,6 @@ class State(rx.State):
         # Llama a register_user con el diccionario completo
         self.register_user(data)
         
-        yield # Liberar el control temporalmente
-        await asyncio.sleep(2)
-        self.did_submit = False
-        yield  # Finalizar el proceso
     ######FIN METODO REGISTRO USUARIO######    
 
     
@@ -320,10 +459,13 @@ class State(rx.State):
     toma el usuario y contraseña y los envia al método login_user 
     '''
 
+    
     async def handle_login(self, form_data: dict):        
         
-        self.form_data = form_data
-        self.did_submit = True
+        self.form_data = form_data         
+        
+                
+        #self.did_submit = True
         
         # Filtrar los datos del formulario para eliminar valores vacíos
         data = {k: v for k, v in form_data.items() if v not in ("", None)}
@@ -332,20 +474,45 @@ class State(rx.State):
         correo_usuario = data.get('correo_usuario')
         password_usuario = data.get('password_usuario')
 
-        self.validar_credenciales(correo_usuario,password_usuario)
-        
+        #self.validar_credenciales(correo_usuario,password_usuario)
 
-        if self.error_credenciales == True:
-            print("Nombre de usuario o contraseña incorrectos")
-        else:
-            #correo_usuario and password_usuario:
-            # Llamar al método para autenticar
-            self.login(correo_usuario, password_usuario)
+        print("Inicia proceso de validación de credenciales")        
         
-        yield  # Liberar el control temporalmente
-        await asyncio.sleep(2)        
-        self.did_submit = False
-        yield  # Finalizar el proceso
+        with rx.session() as session:
+        # Busca el registro de inicio de sesión por correo electrónico
+            login_record = session.exec(
+              Login.select().where(Login.correo == correo_usuario)
+            ).first()  
+
+        
+        if login_record is not None:
+            
+            print("Registro encontrado.")
+            if check_password_hash(login_record.password, password_usuario):
+                print("Contraseña correcta.")
+                if login_record.is_verified:
+                    print("Cuenta verificada.")
+                    self.login(correo_usuario, password_usuario)
+                    self.error_credenciales = False
+                    return rx.redirect('/')                                   
+                else:
+                    print("Cuenta no verificada.")
+                    self.error_credenciales = True
+                    self.mensaje_error_contraseña = "Cuenta no verificada"
+                                        
+            else:
+                print("Contraseña incorrecta.")
+                self.error_credenciales = True
+                self.mensaje_error_contraseña = "Contraseña incorrecta"               
+                
+        else:
+            print("Usuario no registrado.")
+            self.error_credenciales = True
+            self.mensaje_error_contraseña = "Usuario no registrado"         
+     
+        self.loader = False
+        
+        
     ######FIN METODO LOGIN######  
 
 
@@ -363,7 +530,33 @@ class State(rx.State):
             )            
             trabajador = session.exec(query).first()
             self.trabajadores = [trabajador] if trabajador else []
-    ######FIN CONSULTA PARA OBTENER TRABAJADORES POR ID######    
+            
+        with rx.session() as session:
+           query = select(Comentario).where(Comentario.trabajador_id == self.user_id).order_by(Comentario.fecha_creacion.desc())
+           self.comentarios = session.exec(query).all()
+           self.comentarios_cargados = True           
+           #self.textos_comentarios = [comentario.texto_comentario for comentario in self.comentarios]
+           #session.query(Comentario).order_by(Comentario.fecha_creacion.desc()).all()      
+
+    ######FIN CONSULTA PARA OBTENER TRABAJADORES POR ID###### 
+
+
+    ######CONSULTA PARA OBTENER USUARIOS POR ID######
+    '''
+    Este método busca en la base de datos el usuario cuyo id
+    sea el que se pasa como parámetro en la ruta del perfil
+    '''
+    def get_usuario_by_id(self):
+        with rx.session() as session:
+            query = (
+                select(Usuario)
+                .join(Login, Usuario.id == Login.user_id)
+                .options(selectinload(Usuario.login))  
+            )            
+            self.usuarios = [Usuario] if Usuario else []      
+    
+    ######FIN CONSULTA PARA OBTENER USUARIOS POR ID######    
+       
                                   
       
     ######CONSULTA PARA OBTENER TRABAJADORES POR CATEGORIA######
@@ -379,7 +572,7 @@ class State(rx.State):
                 Trabajador.categoria == categoria
             )
             ).all()
-            self.trabajadores = query      
+            self.trabajadores = query                 
     ######FIN CONSULTAS PARA OBTENER TRABAJADORES POR CATEGORÍAS######
 
 
@@ -431,6 +624,8 @@ class State(rx.State):
                 # Obtener el ID del trabajador para el token
                 user_id = new_worker.id
                 user_type = 'trabajador'
+                self.registro = True
+                self.mensaje_registro = f"Registro trabajador correcto, por favor verifique su registro en el enlace que le enviamos a: {correo_usuario}"
             else:
                 # Crear un nuevo objeto Usuario
                 new_user = Usuario(nombre_usuario=nombre_usuario, localidad_usuario=localidad_usuario)
@@ -445,7 +640,10 @@ class State(rx.State):
 
                 # Obtener el ID del usuario para el token
                 user_id = new_user.id
-                user_type = 'usuario'           
+                user_type = 'usuario' 
+                self.registro = True
+                self.mensaje_registro = f"Registro usuario correcto, por favor verifique su registro en el enlace que le enviamos a: {correo_usuario}"
+          
 
             # Generar un token de verificación
             token = jwt.encode({
@@ -456,6 +654,7 @@ class State(rx.State):
             
             # Enviar el correo de verificación
             self.send_verification_email(correo_usuario, token)
+            self.loader = False
     ######FIN METODO PARA REGISTRO DE USUARIOS###############          
 
 
@@ -464,7 +663,7 @@ class State(rx.State):
     Este método sirve para enviar correo al usuario el link de verificación
     '''
     def send_verification_email(self, email, token):
-        verification_link = f"http://localhost:3000/verify/{token}"
+        verification_link = f"https://alavueltadeunclic.reflex.run/verify/{token}"
         msg = EmailMessage()
         msg.set_content(f"Haga clic para verificar su cuenta: {verification_link}")
         msg['Subject'] = "[alavueltadeunclic - Verificación de cuenta]"
@@ -475,50 +674,67 @@ class State(rx.State):
             server.starttls()
             server.login("santurron2004@gmail.com", self.GMAIL_KEY)
             server.send_message(msg)
-    ######FIN METODO PARA ENVIO DE EMAIL###############        
-    
-    
-    ####METODO VALIDACION DE CREDENCIALES###########
-    def validar_credenciales(self, email: str, password: str):
+    ######FIN METODO PARA ENVIO DE EMAIL###############
 
-        print("Inicia proceso de validación de credenciales")        
-        
+   
+    
+   
+    ######METODO PARA MANEJO DE COMENRTARIOS###############
+    '''
+    Este método sirve para guardar los comentarios sobre los trabajadores
+    '''     
+    async def handle_comentario(self):       
+
         with rx.session() as session:
-        # Busca el registro de inicio de sesión por correo electrónico
-            login_record = session.exec(
-              Login.select().where(Login.correo == email)
-            ).first()
-
-        if login_record and check_password_hash(login_record.password, password) == False:
-        #if check_password_hash(login_record.password, password) == False:
-            if login_record.is_verified:
-               self.error_credenciales = True
-               self.mensaje_error_contraseña = "Contraseña incorrecta"                                   
-       
-        elif  login_record and check_password_hash(login_record.password, password):
-               self.mensaje_error_contraseña = "Contraseña correcta" 
-               self.error_credenciales = False
-        else:
-               self.mensaje_error_contraseña = "Usuario no registrado" 
-      ####FIN METODO VALIDACION DE CREDENCIALES###########                      
-
+            nuevo_comentario = Comentario(
+                nombre_usuario=self.user_name,
+                texto_comentario=self.texto_comentario,
+                trabajador_id=self.user_id,
+            )            
+            session.add(nuevo_comentario)
+            session.commit()
+            yield rx.toast.success("Comentario enviado! refresque la pagina para verlo.",duration=5000, close_button=True)
         
-    ####VALIDACIONES Y MENSAJES###########
-    def ocultar_mensaje_error(self):
-        time.sleep(3)
-        self.mensaje_error_contraseña = ""
-        # Asegúrate de notificar al sistema de la actualización del estado
-        threading.Thread(target=self.ocultar_mensaje_error).start()
+        # Reiniciar los campos del formulario
+        self.nombre_usuario = ""
+        self.texto_comentario = ""
 
-    def validacion_usuario(self, usuario: str):
+    ######FIN METODO PARA MANEJO DE COMENRTARIOS###############    
 
-        verificacion = not (re.match(r"^[\w\.-]+@[a-zA-Z\d\.-]+\.[a-zA-Z]{2,}$", usuario))
-        self.usuario_invalido = verificacion
-
-    def validacion_password(self, password: str):
-
-        verificacion = not password.strip()
-        self.password_vacio = verificacion
-     ####FIN VALIDACIONES Y MENSAJES###########    
     
-        
+    
+    ######METODO PARA ACTUALIZAR PERFIL TRABAJADOR###############
+    '''
+    Este método sirve para actualizar el perfil del trabajador
+    '''   
+    async def actualizar_perfil_trabajador(self):       
+
+        with rx.session() as session:
+            trabajador = session.exec(select(Trabajador).where(Trabajador.id == self.user_id)).first()
+            if trabajador:
+                if self.user_entered_telefono: trabajador.telefono_trabajador = self.user_entered_telefono
+                if self.user_entered_direccion: trabajador.direccion = self.user_entered_direccion
+                if self.user_entered_localidad: trabajador.localidad_trabajador = self.user_entered_localidad
+                if self.user_entered_descripcion: trabajador.descripcion = self.user_entered_descripcion                
+                print(trabajador)                
+                session.commit()
+                yield rx.toast.success("Perfil actualizado con éxito!")
+    ######FIN METODO PARA ACTUALIZAR PERFIL TRABAJADOR###############            
+
+    
+    
+    ######METODO PARA ACTUALIZAR PERFIL USUARIOS###############
+    '''
+    Este método sirve para actualizar el perfil del usuario
+    '''  
+    async def actualizar_perfil_usuario(self):       
+
+        with rx.session() as session:
+            usuario = session.exec(select(Usuario).where(Usuario.id == self.user_id)).first()
+
+            if usuario:               
+                if self.user_entered_localidad: usuario.localidad_usuario = self.user_entered_localidad
+                print(usuario)                
+                session.commit()
+                yield rx.toast.success("Perfil actualizado con éxito!") 
+    

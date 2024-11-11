@@ -6,9 +6,9 @@ from ..backend.state import State
 
 
 
-@rx.page(route="/registro_usuario",title="Registro Usuario")
+@rx.page(route="/registro_trabajador",title="Registro Trabajador")
 @template
-def registro_usuario() -> rx.Component:
+def registro_trabajador() -> rx.Component:
 
     return rx.card(
         rx.form.root(
@@ -20,7 +20,7 @@ def registro_usuario() -> rx.Component:
                             rx.input(
                                 placeholder="Digite su nombre",
                                 on_change=State.set_user_entered_username,
-                                name="nombre_usuario",
+                                name="nombre_trabajador",
                             ),
                             as_child=True,
                         ),
@@ -35,7 +35,7 @@ def registro_usuario() -> rx.Component:
                         spacing="2",
                         align="stretch",
                     ),
-                    name="nombre_usuario",
+                    name="nombre_trabajador",
                     server_invalid=State.username_empty,
                 ),
                 rx.form.field(
@@ -59,7 +59,7 @@ def registro_usuario() -> rx.Component:
                         rx.cond(
                             State.email_exists,
                             rx.form.message(
-                                "Usuario ya se encuentra registrado", 
+                                "Trabajador ya se encuentra registrado", 
                                 match="valueMissing",
                                 force_match=State.email_exists,                               
                                 color="var(--red-11)",
@@ -71,16 +71,6 @@ def registro_usuario() -> rx.Component:
                     ),
                     name="correo_usuario",
                     server_invalid=State.email_exists,
-                ),
-                rx.form.field(
-                    rx.flex(
-                        rx.form.label("Localidad: "),
-                        rx.select(
-                                 ["Antonio Nariño","Barrios Unidos","Bosa", "Chapinero","Ciudad Bolívar","Engativá","Fontibon","Kennedy","La Candelaria","Los Mártires","Puente Aranda"
-                                 "Rafael Uribe Uribe","San Cristóbal","Santa Fe","Suba","Sumapaz","Teusaquillo","Tunjuelito","Usaquén","Usme"
-                                 ],placeholder="Seleccione su localidad",name="localidad_usuario", value=State.user_entered_localidad,on_change=State.select_localidad
-                        )                                           
-                    )                        
                 ),
                 rx.form.field(
                     rx.flex(
@@ -136,19 +126,53 @@ def registro_usuario() -> rx.Component:
                 ),
                 rx.form.field(
                     rx.flex(
-                        rx.form.field(
-                            name="is_trabajador",
-                            type="hidden",
-                            value="false",
-                        )
-                    )
+                        rx.form.label("Localidad: "),
+                        rx.select(
+                                 ["Antonio Nariño","Barrios Unidos","Bosa", "Chapinero","Ciudad Bolívar","Engativá","Fontibon","Kennedy","La Candelaria","Los Mártires","Puente Aranda"
+                                 "Rafael Uribe Uribe","San Cristóbal","Santa Fe","Suba","Sumapaz","Teusaquillo","Tunjuelito","Usaquén","Usme"
+                                 ],placeholder="Seleccione su localidad",name="localidad_trabajador",value=State.user_entered_localidad,on_change=State.select_localidad
+                        )                                           
+                    )                        
                 ),
+                rx.form.field(
+                    rx.flex(
+                        rx.form.label("Categoría: "),
+                        rx.select(
+                                 ["Reparaciones","Cerrajería","Instalaciones", "Pintura","Obras","Belleza y Peluquería","Clases","Electricistas","Aseo","Plomería"],
+                                  placeholder="Seleccione su categoría",name="categoria", value=State.user_entered_categoria,on_change=State.select_categoria
+                        )                                           
+                    )                        
+                ),              
+                rx.input(
+                    placeholder="Digite su teléfono",
+                    name="telefono_trabajador",
+                    required=True,
+                    on_change=State.set_user_entered_telefono,
+                ),
+                rx.input(
+                    placeholder="Digite su dirección",
+                    name="direccion",
+                    required=True,
+                    on_change=State.set_user_entered_direccion,
+                ),
+                rx.input(
+                    name="is_trabajador",
+                    type="hidden",
+                    value="true"
+                ),                    
+                rx.text_area(
+                    placeholder="Describa sus servicios",
+                    name="descripcion",
+                    width="100%", 
+                    required=True,
+                    on_change=State.set_user_entered_descripcion,           
+                ),                
                 rx.form.submit(
                     rx.cond((State.loader),                    
                     rx.button(
                         rx.spinner(loading=True), "Enviar", disabled=True
                     ),
-                    rx.button("Enviar", type="submit", disabled=State.input_invalid_usuarios,on_click=State.loader_status),                    
+                    rx.button("Enviar", type="submit", disabled=State.input_invalid_trabajadores,on_click=State.loader_status),                    
                     ),                   
                     as_child=True,
                     width="10em",
@@ -173,5 +197,4 @@ def registro_usuario() -> rx.Component:
              
      ),
       width="30em",
-    )   
- 
+    )  

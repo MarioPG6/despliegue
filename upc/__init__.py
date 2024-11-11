@@ -1,5 +1,5 @@
 from .pages import contacto
-from .pages import registro
+from .pages import registro_trabajador
 from .pages import registro_usuario
 from .pages import reparaciones
 from .pages import detalles
@@ -15,11 +15,14 @@ from .pages import plomeria
 from .pages import admin
 from .pages import verify
 from .pages import login
+from .pages import busquedas
+from .pages import perfil_usuario
+from .pages import historia
 
 
 _all_ = [
     'contacto',
-    'registro',
+    'registro_trabajador',
     'reparaciones',
     'detalles',
     'cerrajeria',
@@ -33,6 +36,9 @@ _all_ = [
     'plomeria',
     'admin',
     'registro_usuario',
-    'veirfy',
+    'verify',
     'login',
+    'busquedas',
+    'perfil_usuario',
+    'historia',
 ]

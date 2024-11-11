@@ -28,7 +28,7 @@ def contacto() -> rx.Component:
             width="50%",            
         ),                            
             rx.button("Enviar", type="submit"),
-            rx.cond(State.did_submit, rx.text("Gracias por sus comentarios!")),
+           
             ),
         on_submit=State.handle_contacto,
         reset_on_submit=True,                    

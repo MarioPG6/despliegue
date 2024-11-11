@@ -11,7 +11,7 @@ def footer_items() -> rx.Component:
             "Sobre nosotros", size="4", weight="bold", as_="h3"
         ),
         footer_item("Conoce el equipo", "/#"),
-        footer_item("Historia", "/#"),        
+        footer_item("Historia", "/historia"),        
         spacing="4",
         text_align=["center", "center", "start"],
         flex_direction="column",
@@ -25,10 +25,10 @@ def social_link(icon: str, href: str) -> rx.Component:
 
 def socials() -> rx.Component:
     return rx.flex(
-        social_link("instagram", "/#"),
-        social_link("twitter", "/#"),
-        social_link("facebook", "/#"),
-        social_link("linkedin", "/#"),
+        social_link("instagram", "http://www.instagram.com"),
+        social_link("twitter", "http://www.x.com"),
+        social_link("facebook", "http://www.facebook.com"),
+        social_link("linkedin", "http://www.linkedin.com"),
         spacing="3",
         justify_content=["center", "center", "end"],
         width="100%",

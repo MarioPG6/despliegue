@@ -1,6 +1,8 @@
 import reflex as rx
 import sqlmodel
-from typing import Optional
+from datetime import datetime,  timezone
+from typing import Optional, List
+
 
 
 class Login(rx.Model, table=True):
@@ -22,6 +24,15 @@ class Usuario(rx.Model, table=True):
 
     login: Optional[Login] = sqlmodel.Relationship(back_populates="user")
 
+class Comentario(rx.Model, table=True):
+    id: Optional[int] = sqlmodel.Field(default=None, primary_key=True)
+    texto_comentario: str
+    nombre_usuario: str
+    fecha_creacion = sqlmodel.Field(default=datetime.now(timezone.utc)) 
+    trabajador_id: Optional[int] = sqlmodel.Field(default=None, foreign_key="trabajador.id")
+
+    trabajador: Optional["Trabajador"] = sqlmodel.Relationship(back_populates="comentarios")
+
 
 class Trabajador(rx.Model, table=True):
     id: Optional[int] = sqlmodel.Field(default=None, primary_key=True)    
@@ -33,6 +44,8 @@ class Trabajador(rx.Model, table=True):
     descripcion: str | None = None
 
     login: Optional[Login] = sqlmodel.Relationship(back_populates="worker")
+    comentarios: List[Comentario] = sqlmodel.Relationship(back_populates="trabajador")
+
 
 class Contacto(rx.Model, table=True):    
     nombre: str | None = None

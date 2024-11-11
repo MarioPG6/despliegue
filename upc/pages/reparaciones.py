@@ -30,9 +30,7 @@ def user_card(user: Trabajador) -> rx.Component:
 @template
 def reparaciones() -> rx.Component:
     """Página principal de Reparaciones con tarjetas para cada usuario."""
-    return rx.cond(
-        (State.role_user == "usuario") & (State.authenticated),
-        rx.vstack(
+    return rx.vstack(
         rx.heading("Reparaciones", icon="wrench"),          
         rx.hstack(
             rx.foreach(State.trabajadores, user_card), 
@@ -41,8 +39,4 @@ def reparaciones() -> rx.Component:
         ),
         align="start",
         spacing="30px",            
-    ),
-        rx.text("Usuario no autorizado")
     )
-        
-       

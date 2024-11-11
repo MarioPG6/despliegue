@@ -34,34 +34,68 @@ def navbar() -> rx.Component:
                         border_radius="25%",
                     ),
                      rx.heading(
-                        "A la vuelta de un clic", size="6", weight="bold"                                            
+                        "A la vuelta de un Click", size="6", weight="bold"                                            
                      ),                   
                     align_items="center",
-                ),
+                ),                    
                 rx.hstack(
                     navbar_icons_item("Home", "home", "/#"),
                     navbar_icons_item(
-                        "Buscar", "search", "/#"
+                        "Buscar", "search", "/busquedas"
                     ),
                     rx.cond(
-                        (State.role_user == 'usuario'),
-                        navbar_icons_item("Regisístrate", "user-round-plus", "/registro"), 
+                        ~(State.authenticated),
+                        navbar_icons_item("Ingresa", "user-round-plus", "/login"), 
                     ),    
                     navbar_icons_item(
                         "Contáctanos", "mail", "/contacto"
                     ),       
                     rx.cond(
-                        State.authenticated,                                           
-                        rx.button("Logout", on_click=State.logout),                            
-                        rx.button("Login", on_click=rx.redirect('/login')),
+                        (State.authenticated) & (State.role_user == "usuario"),                                  
+                    
+                        rx.menu.root(
+                        rx.menu.trigger(
+                            rx.icon_button(
+                                rx.icon("user"),
+                                size="2",
+                                radius="full",
+                            )
+                        ),
+                        rx.menu.content(
+                            rx.menu.item(rx.text(State.user_name)),
+                            rx.menu.item("Perfil", on_click=rx.redirect(f"/perfil_usuario/{State.login_id}")),                                                        
+                            rx.menu.separator(),
+                            rx.menu.item("Cerrar sesión",on_click=State.logout),
+                        ),
+                        justify="end",
                     ),
-                    # rx.cond(
-                    #     (auth.AuthState.user_details['email'] == 'herradacesar@hotmail.com') |
-                    #     (auth.AuthState.user_details['email'] == 'santurron2004@gmail.com'),                                          
-                    #     rx.button(rx.icon('user-round-cog'), on_click=rx.redirect("/admin")),                  
-                    # ),                    
+                    ),
+                    rx.cond(
+                        (State.authenticated) & (State.role_user == "trabajador"),                                  
+                    
+                        rx.menu.root(
+                        rx.menu.trigger(
+                            rx.icon_button(
+                                rx.icon("user"),
+                                size="2",
+                                radius="full",
+                            )
+                        ),
+                        rx.menu.content(
+                            rx.menu.item(rx.text(State.user_name)),
+                             rx.menu.item("Perfil", on_click=rx.redirect(f"/detalles/{State.login_id}")),                                                         
+                            rx.menu.separator(),
+                            rx.menu.item("Cerrar sesión",on_click=State.logout),
+                        ),
+                        justify="end",
+                    ),
+                    ),
+                    
+                    justify="between",
+                    align_items="center",                  
+                                      
                     spacing="6",
-                ),
+                ),                    
                 justify="between",
                 align_items="center",
             ),
@@ -89,25 +123,56 @@ def navbar() -> rx.Component:
                             "Home", "home", "/#"
                         ),
                         navbar_icons_menu_item(
-                            "Buscar", "search", "/#"
-                        ),
-                        navbar_icons_menu_item(
-                            "Regístrate", "user-round-plus", "/#"
-                        ),
-                        navbar_icons_menu_item(
-                            "Contáctanos", "mail", "/#"
+                            "Buscar", "search", "/busquedas"
                         ),
                         rx.cond(
-                        State.authenticated,                                           
-                        rx.button("Logout", on_click=State.logout),                            
-                        rx.button("Login", on_click=rx.redirect('/login')),
+                            ~(State.authenticated),
+                            navbar_icons_item("Ingresa", "user-round-plus", "/login"), 
+                        ), 
+                        navbar_icons_menu_item(
+                            "Contáctanos", "mail", "/contacto"
                         ),
-                        #     rx.cond(
-                        #     (auth.AuthState.user_details['email'] == 'mariostteven@gmail.com') |
-                        #     (auth.AuthState.user_details['email'] == 'santurron2004@gmail.com'),                                          
-                        #     rx.button(rx.icon('user-round-cog'), on_click=rx.redirect("/admin")),                  
-                        # ),  
+                         rx.cond(
+                        (State.authenticated) & (State.role_user == "usuario"),                                  
+                    
+                        rx.menu.root(
+                        rx.menu.trigger(
+                            rx.icon_button(
+                                rx.icon("user"),
+                                size="2",
+                                radius="full",
+                            )
+                        ),
+                        rx.menu.content(
+                            rx.menu.item(rx.text(State.user_name)),
+                            rx.menu.item("Perfil", on_click=rx.redirect(f"/perfil_usuario/{State.login_id}")),                                                        
+                            rx.menu.separator(),
+                            rx.menu.item("Cerrar sesión",on_click=State.logout),
+                        ),
+                        justify="end",
                     ),
+                    ),
+                    rx.cond(
+                        (State.authenticated) & (State.role_user == "trabajador"),                                  
+                    
+                        rx.menu.root(
+                        rx.menu.trigger(
+                            rx.icon_button(
+                                rx.icon("user"),
+                                size="2",
+                                radius="full",
+                            )
+                        ),
+                        rx.menu.content(
+                            rx.menu.item(rx.text(State.user_name)),
+                             rx.menu.item("Perfil", on_click=rx.redirect(f"/detalles/{State.login_id}")),                                                         
+                            rx.menu.separator(),
+                            rx.menu.item("Cerrar sesión",on_click=State.logout),
+                        ),
+                        justify="end",
+                    ),
+                    ),
+                ),
                     justify="end",
                 ),
                 justify="between",

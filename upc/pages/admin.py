@@ -99,13 +99,28 @@ def row_trabajador(trabajador: Trabajador) -> rx.Component:
         rx.table.cell(trabajador.categoria, style={"max-width": "100px", "overflow": "hidden", "text-overflow": "ellipsis"}),
         rx.table.cell(trabajador.direccion, style={"max-width": "150px", "overflow": "hidden", "text-overflow": "ellipsis"}),
         rx.table.cell(
-            rx.button(
-                rx.icon('trash-2'),
-                on_click=lambda t_id=trabajador.id: Admin.delete_trabajador(t_id),
-                color="white",
-                size="sm"
+            rx.alert_dialog.root(
+                rx.alert_dialog.trigger(
+                    rx.icon('trash-2'),
+                ),
+                rx.alert_dialog.content(
+                    rx.alert_dialog.title("Eliminar usuario"),
+                    rx.alert_dialog.description(
+                        "¿Está seguro de que desea eliminar este usuario?, esta operación es irreversible",
+                    ),
+                    rx.flex(
+                        rx.alert_dialog.cancel(
+                            rx.button("Cancelar"),
+                        ),
+                        rx.alert_dialog.action(
+                            rx.button("Eliminar"),
+                            on_click=lambda t_id=trabajador.id: Admin.delete_trabajador(t_id),
+                        ),
+                        spacing="3",
+                    ),
+                ),
             )
-        )
+        ),   
     )
 
 def table_contactos(contactos: list[Contacto]) -> rx.Component:
@@ -142,13 +157,28 @@ def row_contacto(contacto: Contacto) -> rx.Component:
             )
         ),
         rx.table.cell(
-            rx.button(
-                rx.icon('trash-2'),
-                on_click=lambda c_id=contacto.id: Admin.delete_contacto(c_id),
-                color="white",
-                size="sm"
+            rx.alert_dialog.root(
+                rx.alert_dialog.trigger(
+                    rx.icon('trash-2'),
+                ),
+                rx.alert_dialog.content(
+                    rx.alert_dialog.title("Eliminar mensaje de contacto"),
+                    rx.alert_dialog.description(
+                        "¿Está seguro de que desea eliminar el comentario enviado por este usuario?, esta operación es irreversible",
+                    ),
+                    rx.flex(
+                        rx.alert_dialog.cancel(
+                            rx.button("Cancelar"),
+                        ),
+                        rx.alert_dialog.action(
+                            rx.button("Eliminar"),
+                            on_click=lambda c_id=contacto.id: Admin.delete_contacto(c_id),
+                        ),
+                        spacing="3",
+                    ),
+                ),
             )
-        )
+        ),   
     )
 
 @rx.page(route="/admin", on_load=Admin.on_load)
@@ -186,5 +216,12 @@ def admin() -> rx.Component:
         ),
         
         # Si no está autorizado, mostrar un mensaje de acceso denegado
-        rx.text("Acceso denegado: No tienes permiso para acceder a esta página.", font_size="20px", color="red")
-    )
+        rx.callout.root(
+            rx.callout.icon(rx.icon(tag="info")),
+            rx.callout.text(
+                "Acceso restringido, solo los administradores tienen acceso a esta sección"
+            ),
+            color_scheme="red",
+            role="alert",
+            )            
+        )  
