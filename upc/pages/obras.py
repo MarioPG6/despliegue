@@ -30,7 +30,8 @@ def user_card(user: Trabajador) -> rx.Component:
 def obras() -> rx.Component:
     """Página principal de obras con tarjetas para cada usuario."""
     return rx.vstack(
-        rx.heading("obras", icon="wrench"),  
+        rx.heading("Sección de Obras", icon="wrench"),
+        rx.text("A continuación encuentras nuestro catálogo de obreros disponibles."),  
         rx.hstack(
             rx.foreach(State.trabajadores, user_card), 
             spacing="20px",

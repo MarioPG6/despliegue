@@ -29,4 +29,3 @@ def verify()-> rx.Component:
             role="alert",
             ),
     )
- 

@@ -2,10 +2,6 @@ import reflex as rx
 
 from ..template.template import template
 from ..backend.state import State
-from ..backend.models import Trabajador, Comentario
-
-   
-
    
 
 
@@ -98,16 +94,14 @@ def detalles() -> rx.Component:
         rx.cond(
             State.trabajadores,            
             rx.card(
-                rx.cond(State.authenticated,
-                    rx.hstack(                    
-                        rx.text.strong('Correo:'),
-                        rx.text(State.trabajadores[0].login.correo),
-                        rx.text.strong('Teléfono:'),
-                        rx.text(State.trabajadores[0]['telefono_trabajador']),
-                        rx.text.strong('Dirección:'),
-                        rx.text(State.trabajadores[0]['direccion']),                
+                rx.cond((State.authenticated) & (State.user_id != State.login_id) & (State.role_user != "trabajador"), 
+                    rx.hstack(                   
+                        rx.button("Contactar",on_click=State.contactar_trabajador(State.trabajadores[0].login.correo,State.trabajadores[0]['nombre_trabajador'],State.user_name,State.telefono_usuario,State.direccion_usuario,State.login_id,State.user_id)),
+                                       
                     ),
-                    rx.link(rx.text("Debe registrarse para poder ver los datos de contacto y hacer comentarios",color="red"),href="/login"),
+                    rx.cond((State.user_id != State.login_id) & (State.role_user != "trabajador"),
+                        rx.link(rx.text("Debe registrarse para poder contactar al trabajador y hacer comentarios",color="red"),href="/login"),
+                    ),    
                 ),               
                 rx.hstack(
                     rx.text.strong('Localidad:'),
@@ -120,11 +114,19 @@ def detalles() -> rx.Component:
                 rx.hstack(
                     rx.text.strong('Descripción:'),
                     rx.text(State.trabajadores[0]['descripcion']),
-                ),                
-                rx.cond(State.authenticated, 
+                ),
+                rx.cond((State.authenticated) & (State.user_id != State.login_id) & (State.role_user != "trabajador"),
+                    rx.hstack(
+                    rx.icon("thumbs-up",on_click=State.calificar_servicio_up),
+                    rx.text(State.trabajadores[0]['thumbs_up']),
+                    rx.icon("thumbs-down",on_click=State.calificar_servicio_down),
+                    rx.text(State.trabajadores[0]['thumbs_down']),          
+                    ),
+                ),                          
+                rx.cond((State.authenticated) & (State.user_id != State.login_id) & (State.role_user != "trabajador"), 
                     rx.form(
                         rx.text_area(placeholder="Deja tu comentario aquí...", value=State.texto_comentario, on_change=State.set_texto_comentario),
-                        rx.button("Enviar", on_click=State.handle_comentario),
+                        rx.button("Enviar", on_click=lambda: State.handle_comentario),
                     ),
                 ),
                 rx.vstack(

@@ -138,7 +138,7 @@ def registro_trabajador() -> rx.Component:
                     rx.flex(
                         rx.form.label("Categoría: "),
                         rx.select(
-                                 ["Reparaciones","Cerrajería","Instalaciones", "Pintura","Obras","Belleza y Peluquería","Clases","Electricistas","Aseo","Plomería"],
+                                 ["Cerrajería","Pintura","Obras"],
                                   placeholder="Seleccione su categoría",name="categoria", value=State.user_entered_categoria,on_change=State.select_categoria
                         )                                           
                     )                        

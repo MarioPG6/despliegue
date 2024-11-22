@@ -1,14 +1,16 @@
 import reflex as rx
 import asyncio
 import jwt
-import datetime
 import re
 import smtplib
+import datetime
 from werkzeug.security import check_password_hash
 from werkzeug.security import generate_password_hash
+from datetime import datetime, timezone, timedelta
 from email.message import EmailMessage
 from sqlmodel import select
 from sqlalchemy.orm import selectinload
+from collections import Counter
 
 
 
@@ -18,6 +20,8 @@ from .models import Usuario
 from .models import Login
 from .models import Contacto
 from .models import Comentario
+from .models import Servicio
+from .models import Calificacion
 
     
 
@@ -25,6 +29,7 @@ class State(rx.State):
     trabajadores: list[Trabajador]  = [] 
     usuarios: list[Usuario]  = [] 
     comentarios: list[Comentario] = []
+    servicios: list[Servicio]  = [] 
     form_data: dict = {}    
     submit_msg: str
     token: str = ""
@@ -52,10 +57,16 @@ class State(rx.State):
     texto_comentario = ""    
     comentarios_cargados: bool = False
     nombre_usuario = ""
+    telefono_usuario = ""
+    direccion_usuario = ""
     loged_in: bool = False
     loader: bool = False
     registro: bool = False
-    mensaje_registro: str    
+    mensaje_registro: str
+    estado_servicio: str
+    estado_count: int
+    data_for_chart: list = []
+   
   
 
    
@@ -206,7 +217,7 @@ class State(rx.State):
             'role': role,
             'nombre': user_name,
             'login_id': login_id,
-            'exp': datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(hours=24),
+            'exp': datetime.now(timezone.utc) + timedelta(hours=24),
         }, self.SECRET_KEY, algorithm="HS256")
         
         self.token = token
@@ -284,12 +295,14 @@ class State(rx.State):
                     # Manejar el inicio de sesión de Usuario
                     user = session.get(Usuario, login_record.user_id)
                     self.generate_token(login_record.id, user.nombre_usuario, login_record.correo, "usuario", login_record.user_id)
+                    self.telefono_usuario = user.telefono_usuario
+                    self.direccion_usuario = user.direccion_usuario
                     print(f"Nuevo Token generado para usuario: {self.token}")
                     
                        
                 elif login_record.worker_id:
-                    # Manejar el inicio de sesión de Trabajador
-                    worker = session.get(Trabajador, login_record.worker_id)
+                    # Manejar el inicio de sesión de Trabajador                    
+                    worker = session.get(Trabajador, login_record.worker_id)                   
                     self.generate_token(login_record.id, worker.nombre_trabajador, login_record.correo, "trabajador", login_record.worker_id)
                     print(f"Nuevo Token generado para trabajador: {self.token}")
                     
@@ -297,11 +310,9 @@ class State(rx.State):
             else:
                 print("Usuario o trabajador no verificado")
         else:
-            print("Credenciales incorrectas")
-
-         
-           
-    ######FIN METODO INICIO DE SESION(LOGIN)######        
+            print("Credenciales incorrectas")       
+    ######FIN METODO INICIO DE SESION(LOGIN)######     
+       
 
     
     ######METODO CIERRE DE SESION(LOGOUT)######
@@ -320,6 +331,7 @@ class State(rx.State):
             self.mensaje_error_contraseña = ""
             self.mensaje_registro = ""
             self.login_id = ""
+            self.servicios = [] 
                  
        
         print("Logout realizado")
@@ -427,7 +439,6 @@ class State(rx.State):
         session.add(db_entry)
         session.commit()
         yield rx.toast.success("Gracias por enviar sus comentarios!") 
-
     ######FIN METODO CONTACTO######        
     
 
@@ -448,8 +459,7 @@ class State(rx.State):
         data['is_trabajador'] = form_data.get('is_trabajador', 'false').lower() == 'true'
         
         # Llama a register_user con el diccionario completo
-        self.register_user(data)
-        
+        self.register_user(data)        
     ######FIN METODO REGISTRO USUARIO######    
 
     
@@ -457,9 +467,7 @@ class State(rx.State):
     '''
     Este módulo es el manejador de evento del formulario /login
     toma el usuario y contraseña y los envia al método login_user 
-    '''
-
-    
+    '''   
     async def handle_login(self, form_data: dict):        
         
         self.form_data = form_data         
@@ -482,7 +490,29 @@ class State(rx.State):
         # Busca el registro de inicio de sesión por correo electrónico
             login_record = session.exec(
               Login.select().where(Login.correo == correo_usuario)
-            ).first()  
+            ).first()
+        print(login_record)    
+
+        with rx.session() as session:
+            query = (
+                select(Trabajador)
+                .join(Login, Trabajador.id == Login.worker_id)
+                .options(selectinload(Trabajador.login))
+                .where(Login.correo == correo_usuario) 
+            )   
+            trabajador = session.exec(query).first()
+            print(trabajador)
+
+        with rx.session() as session:
+            query = (
+                select(Usuario)
+                .join(Login, Usuario.id == Login.user_id)
+                .options(selectinload(Usuario.login))
+                .where(Login.correo == correo_usuario) 
+            )   
+            usuario = session.exec(query).first()
+            print(usuario)    
+         
 
         
         if login_record is not None:
@@ -490,11 +520,21 @@ class State(rx.State):
             print("Registro encontrado.")
             if check_password_hash(login_record.password, password_usuario):
                 print("Contraseña correcta.")
-                if login_record.is_verified:
+                if login_record.is_verified and login_record.role == "usuario":
                     print("Cuenta verificada.")
                     self.login(correo_usuario, password_usuario)
                     self.error_credenciales = False
-                    return rx.redirect('/')                                   
+                    return rx.redirect('/')
+                elif login_record.is_verified and login_record.role == "trabajador":
+                    if trabajador.is_verified == 1:
+                        print("Cuenta verificada y validada para trabajador.")
+                        self.login(correo_usuario, password_usuario)
+                        self.error_credenciales = False
+                        return rx.redirect('/')
+                    else:
+                        print("Cuenta verificada pero aún se encuentra en proceso de validación.")
+                        self.error_credenciales = True
+                        self.mensaje_error_contraseña = "Cuenta verificada pero aún se encuentra en proceso de validación"                                   
                 else:
                     print("Cuenta no verificada.")
                     self.error_credenciales = True
@@ -510,10 +550,9 @@ class State(rx.State):
             self.error_credenciales = True
             self.mensaje_error_contraseña = "Usuario no registrado"         
      
-        self.loader = False
-        
-        
+        self.loader = False      
     ######FIN METODO LOGIN######  
+
 
 
     ######CONSULTA PARA OBTENER TRABAJADORES POR ID######
@@ -534,11 +573,9 @@ class State(rx.State):
         with rx.session() as session:
            query = select(Comentario).where(Comentario.trabajador_id == self.user_id).order_by(Comentario.fecha_creacion.desc())
            self.comentarios = session.exec(query).all()
-           self.comentarios_cargados = True           
-           #self.textos_comentarios = [comentario.texto_comentario for comentario in self.comentarios]
-           #session.query(Comentario).order_by(Comentario.fecha_creacion.desc()).all()      
-
+           self.comentarios_cargados = True         
     ######FIN CONSULTA PARA OBTENER TRABAJADORES POR ID###### 
+
 
 
     ######CONSULTA PARA OBTENER USUARIOS POR ID######
@@ -552,9 +589,9 @@ class State(rx.State):
                 select(Usuario)
                 .join(Login, Usuario.id == Login.user_id)
                 .options(selectinload(Usuario.login))  
-            )            
-            self.usuarios = [Usuario] if Usuario else []      
-    
+            )
+            query = query.where(Login.correo == self.user_email)
+            self.usuarios = session.exec(query).all() or []    
     ######FIN CONSULTA PARA OBTENER USUARIOS POR ID######    
        
                                   
@@ -569,9 +606,23 @@ class State(rx.State):
         with rx.session() as session:
             query = session.exec(
             Trabajador.select().where(
-                Trabajador.categoria == categoria
+                Trabajador.categoria == categoria, Trabajador.is_verified == 1
             )
             ).all()
+            self.trabajadores = query                 
+    ######FIN CONSULTAS PARA OBTENER TRABAJADORES POR CATEGORÍAS######
+
+
+     ######CONSULTA PARA OBTENER TODOS LOS TRABAJADORES######
+    '''
+    Este método busca en la base de datos todos los trabajadores    
+    '''
+    def get_all_trabajadores(self):
+        with rx.session() as session:
+            query = session.exec(
+            Trabajador.select()
+            ).all()
+
             self.trabajadores = query                 
     ######FIN CONSULTAS PARA OBTENER TRABAJADORES POR CATEGORÍAS######
 
@@ -592,8 +643,10 @@ class State(rx.State):
         nombre_trabajador = form_data.get('nombre_trabajador')
         localidad_trabajador = form_data.get('localidad_trabajador')
         telefono_trabajador = form_data.get('telefono_trabajador')
+        telefono_usuario = form_data.get('telefono_usuario')
         categoria = form_data.get('categoria')
         direccion = form_data.get('direccion')
+        direccion_usuario = form_data.get('direccion_usuario')
         descripcion = form_data.get('descripcion')
 
 
@@ -628,7 +681,7 @@ class State(rx.State):
                 self.mensaje_registro = f"Registro trabajador correcto, por favor verifique su registro en el enlace que le enviamos a: {correo_usuario}"
             else:
                 # Crear un nuevo objeto Usuario
-                new_user = Usuario(nombre_usuario=nombre_usuario, localidad_usuario=localidad_usuario)
+                new_user = Usuario(nombre_usuario=nombre_usuario, localidad_usuario=localidad_usuario,telefono_usuario=telefono_usuario,direccion_usuario=direccion_usuario)
                 session.add(new_user)
                 session.commit()
                 session.refresh(new_user)
@@ -649,7 +702,7 @@ class State(rx.State):
             token = jwt.encode({
                 'user_id': user_id,
                 'user_type': user_type,
-                'exp': datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(hours=24),
+                'exp':  datetime.now(timezone.utc) + timedelta(hours=24),
             }, self.SECRET_KEY, algorithm="HS256")
             
             # Enviar el correo de verificación
@@ -658,12 +711,12 @@ class State(rx.State):
     ######FIN METODO PARA REGISTRO DE USUARIOS###############          
 
 
-    ######METODO PARA ENVIO DE EMAIL###############
+    ######METODO PARA ENVIO DE EMAIL DE REGISTRO###############
     '''
     Este método sirve para enviar correo al usuario el link de verificación
     '''
     def send_verification_email(self, email, token):
-        verification_link = f"https://alavueltadeunclic.reflex.run/verify/{token}"
+        verification_link = f"https://alavueltadeunclick.com:3000/verify/{token}"
         msg = EmailMessage()
         msg.set_content(f"Haga clic para verificar su cuenta: {verification_link}")
         msg['Subject'] = "[alavueltadeunclic - Verificación de cuenta]"
@@ -674,12 +727,10 @@ class State(rx.State):
             server.starttls()
             server.login("santurron2004@gmail.com", self.GMAIL_KEY)
             server.send_message(msg)
-    ######FIN METODO PARA ENVIO DE EMAIL###############
+    ######FIN METODO PARA ENVIO DE EMAIL DE REGISTRO###############
 
    
-    
-   
-    ######METODO PARA MANEJO DE COMENRTARIOS###############
+    ######METODO PARA MANEJO DE COMENTARIOS###############
     '''
     Este método sirve para guardar los comentarios sobre los trabajadores
     '''     
@@ -690,16 +741,17 @@ class State(rx.State):
                 nombre_usuario=self.user_name,
                 texto_comentario=self.texto_comentario,
                 trabajador_id=self.user_id,
+                fecha_creacion = datetime.now(timezone.utc) - timedelta(hours=5)
             )            
             session.add(nuevo_comentario)
             session.commit()
-            yield rx.toast.success("Comentario enviado! refresque la pagina para verlo.",duration=5000, close_button=True)
+            yield rx.toast.success("Comentario enviado!")
+            self.get_trabajador_by_id()
         
         # Reiniciar los campos del formulario
         self.nombre_usuario = ""
         self.texto_comentario = ""
-
-    ######FIN METODO PARA MANEJO DE COMENRTARIOS###############    
+    ######FIN METODO PARA MANEJO DE COMENTARIOS###############    
 
     
     
@@ -719,6 +771,7 @@ class State(rx.State):
                 print(trabajador)                
                 session.commit()
                 yield rx.toast.success("Perfil actualizado con éxito!")
+                self.get_trabajador_by_id()
     ######FIN METODO PARA ACTUALIZAR PERFIL TRABAJADOR###############            
 
     
@@ -734,7 +787,258 @@ class State(rx.State):
 
             if usuario:               
                 if self.user_entered_localidad: usuario.localidad_usuario = self.user_entered_localidad
+                if self.user_entered_telefono: usuario.telefono_usuario = self.user_entered_telefono
+                if self.user_entered_direccion: usuario.direccion_usuario = self.user_entered_direccion
                 print(usuario)                
                 session.commit()
-                yield rx.toast.success("Perfil actualizado con éxito!") 
+                yield rx.toast.success("Perfil actualizado con éxito!")
+                self.get_usuario_by_id()
+    ######FIN METODO PARA ACTUALIZAR PERFIL USUARIOS###############            
+
+
+    ######METODO PARA CONTACTAR AL TRABAJADOR###############
+    '''
+    Este método sirve para contactar al trabajador
+    '''               
     
+    def contactar_trabajador(self, email, trabajador, usuario, telefono, direccion, usuario_id, trabajador_id ):
+        
+        nuevo_servicio = Servicio(usuario_id=usuario_id, trabajador_id=trabajador_id)
+        self.estado_servicio = "abierto"
+        with rx.session() as session:
+            session.add(nuevo_servicio)
+            session.commit()
+
+        msg = EmailMessage()
+        msg.set_content(f"""Hola {trabajador}
+                         El usuario {usuario} está interesado en contratar tus servicios.
+                         A continuación, te dejemos los datos para que puedas establecer contacto
+                         recuerda iniciar el servicio desde tu perfil una vez te encuentres en el
+                         domicilio del usuario.
+                         Usuario: {usuario}
+                         Teléfono: {telefono}
+                         Dirección: {direccion}
+
+                         Att. El equipo de A la vuleta de un Click
+                                                
+                        """
+                        )
+        msg['Subject'] = "[alavueltadeunclick] - Un usuario está interesado en tus servicios!"
+        msg['From'] = "santurron2004@gmail.com"
+        msg['To'] = email
+
+        with smtplib.SMTP("smtp.gmail.com", 587) as server:
+            server.starttls()
+            server.login("santurron2004@gmail.com", self.GMAIL_KEY)
+            server.send_message(msg)
+            yield rx.toast.success(f"Se enviaron sus datos de contacto a {trabajador}, se pondrá en contacto con usted en breve.")
+    ######FIN METODO PARA CONTACTAR AL TRABAJADOR###############        
+
+    
+    
+    ######METODO PARA CREAR LISTA DE ESTADOS###############
+    '''
+    Este método sirve para alimentar la gráfica del módulo de gerencia con
+    los estados y la cantidad de los mismos
+    '''  
+    def get_estado_servicios(self):
+        
+         self.get_servicios()
+         with rx.session() as session:
+            resultados = session.exec(select(Servicio)).all()
+            estados = [servicio.estado for servicio in resultados]
+            estado_count = dict(Counter(estados))
+
+            self.data_for_chart = [{'estado': estado, 'cantidad': cantidad} for estado, cantidad in estado_count.items()]
+            
+    ######METODO PARA CREAR LISTA DE ESTADOS###############          
+
+       
+    ######METODO PARA TRAER DATOS DE USUARIOS/TRABAJADORES/SERVICIOS###############
+    '''
+    Este método sirve para alimentar la tabla del módulo de gerencia con
+    los trabajadores, usuarios y estados.
+    '''  
+    def get_servicios(self):
+
+        with rx.session() as session:
+            
+            statement = (
+                select(Servicio)                
+                .options(
+                 selectinload(Servicio.trabajador),
+                 selectinload(Servicio.usuario)
+                )        
+            )
+            
+            self.servicios = session.exec(statement).all()                       
+         
+
+            if not self.servicios:
+                print("No se encontraron servicios")
+                self.servicios = []  
+            else:
+                print(f"Se encontraron {len(self.servicios)} servicios")
+
+            self.estado_count = len(self.servicios)
+    ######FIN METODO PARA TRAER DATOS DE USUARIOS/TRABAJADORES/SERVICIOS###############        
+
+
+
+    ######METODO PARA CARGAR SERVICIOS POR USUARIO###############
+    '''
+    Este método sirve para generar la lista de servicios por cada usuario
+    '''  
+    def get_servicios_by_user(self):
+        print("entró a obtener servicios por usuario")
+        with rx.session() as session:
+            statement = (
+                select(Servicio)
+                .where(Servicio.usuario_id == self.login_id).order_by(Servicio.fecha_creacion.desc())
+                .options(selectinload(Servicio.trabajador))  # Asegura que la relación se cargue
+            )
+                        
+            self.servicios = session.exec(statement).all()
+
+            if not self.servicios:
+                print("No se encontraron servicios para el usuario con ID:", self.login_id)
+                self.servicios = []  
+            else:
+                print(f"Se encontraron {len(self.servicios)} servicios para el usuario con ID: {self.login_id}")
+     ######FIN METODO PARA CARGAR SERVICIOS POR USUARIO###############       
+   
+
+
+    ######METODO PARA CARGAR SERVICIOS POR TRABAJADOR###############
+    '''
+    Este método sirve para generar la lista de servicios por cada usuario
+    '''  
+    def get_servicios_by_trabajador(self):
+        print("entró a obtener servicios por trabajador")
+        with rx.session() as session:
+            statement = (
+                select(Servicio)
+                .where(Servicio.trabajador_id == self.login_id).order_by(Servicio.fecha_creacion.desc())
+                .options(selectinload(Servicio.usuario))  # Asegura que la relación se cargue
+            )
+            
+            self.servicios = session.exec(statement).all()
+
+            if not self.servicios:
+                print("No se encontraron servicios para el trabajador con ID:", self.login_id)
+                self.servicios = []  
+            else:   
+                print(f"Se encontraron {len(self.servicios)} servicios para el trabajador con ID: {self.login_id}")
+    ######METODO PARA CARGAR SERVICIOS POR TRABAJADOR###############      
+    
+    
+    ######METODO PARA CERRAR SERVICIOS###############
+    '''
+    Este método sirve para cerrar un servicio
+    '''  
+    def cerrar_servicio(self, id: int):       
+       
+        with rx.session() as session:
+            servicio = session.get(Servicio, id)
+            if servicio:
+                servicio.estado = "cerrado"
+                servicio.fecha_cierre = datetime.now(timezone.utc) - timedelta(hours=5)
+                session.commit()
+                yield rx.toast.success(f"Se ha cerrado el servicio correctamente")
+        
+                self.get_servicios_by_trabajador()
+                self.get_servicios_by_user()
+    ######FIN METODO PARA CERRAR SERVICIOS###############   
+             
+
+    ######METODO PARA CANCELAR SERVICIOS###############
+    '''
+    Este método sirve para cancelar un servicio
+    '''  
+    def cancelar_servicio(self, id: int):       
+       
+        with rx.session() as session:
+            servicio = session.get(Servicio, id)
+            if servicio:
+                servicio.estado = "cancelado"
+                servicio.fecha_cierre = datetime.now(timezone.utc) - timedelta(hours=5)
+                session.commit()
+                yield rx.toast.success(f"Se ha cancelado el servicio correctamente")
+
+                self.get_servicios_by_trabajador()
+                self.get_servicios_by_user()
+    ######FIN METODO PARA CANCELAR SERVICIOS###############
+            
+
+    ######METODO PARA INICIAR SERVICIOS###############
+    '''
+    Este método sirve para cancelar un servicio
+    '''  
+    def iniciar_servicio(self, id: int):       
+       
+        with rx.session() as session:
+            servicio = session.get(Servicio, id)
+            if servicio:
+                servicio.estado = "iniciado"
+                servicio.fecha_inicio = datetime.now(timezone.utc) - timedelta(hours=5)
+                session.commit()
+                yield rx.toast.success(f"Se ha iniciado el servicio correctamente")
+                
+                self.get_servicios_by_trabajador()
+    ######FIN METODO PARA INICIAR SERVICIOS###############            
+
+    
+    ######METODO PARA CALIFICAR SERVICIOS BIEN###############
+    '''
+    Este método sirve para calificar un servicio bien
+    '''  
+    def calificar_servicio_up(self):
+
+        with rx.session() as session:
+            trabajador = session.get(Trabajador, self.user_id)
+            if trabajador:
+                calificacion_existente = session.exec(
+                select(Calificacion).where(
+                    Calificacion.usuario_id == self.login_id,  
+                    Calificacion.trabajador_id == self.user_id
+                )
+                ).first()
+                
+                if calificacion_existente:
+                    yield rx.toast.warning("Ya has calificado a este trabajador.")
+                else:
+                    trabajador.thumbs_up = trabajador.thumbs_up + 1
+                    session.add(Calificacion(usuario_id=self.login_id, trabajador_id=self.user_id))                
+                    session.commit()
+                    yield rx.toast.success(f"Gracias por su calificación")
+                    self.get_trabajador_by_id()
+    ######FIN METODO PARA CALIFICAR SERVICIOS###############        
+
+    
+    ######METODO PARA CALIFICAR SERVICIOS MAL###############
+    '''
+    Este método sirve para calificar un servicio mal
+    '''  
+    def calificar_servicio_down(self):        
+                
+         with rx.session() as session:
+            trabajador = session.get(Trabajador, self.user_id)
+            if trabajador:
+                calificacion_existente = session.exec(
+                select(Calificacion).where(
+                    Calificacion.usuario_id == self.login_id,  
+                    Calificacion.trabajador_id == self.user_id
+                )
+                ).first()
+                
+                if calificacion_existente:
+                    yield rx.toast.warning("Ya has calificado a este trabajador.")
+                else:
+                    trabajador.thumbs_down = trabajador.thumbs_down + 1
+                    session.add(Calificacion(usuario_id=self.login_id, trabajador_id=self.user_id))                
+                    session.commit()
+                    yield rx.toast.success(f"Gracias por su calificación")
+                    self.get_trabajador_by_id()
+    ######FIN METODO PARA CALIFICAR SERVICIOS MAL###############               
+                      
+                                               

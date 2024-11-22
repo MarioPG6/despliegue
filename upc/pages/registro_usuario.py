@@ -143,6 +143,18 @@ def registro_usuario() -> rx.Component:
                         )
                     )
                 ),
+                rx.input(
+                    placeholder="Digite su teléfono",
+                    name="telefono_usuario",
+                    required=True,
+                    on_change=State.set_user_entered_telefono,
+                ),
+                rx.input(
+                    placeholder="Digite su dirección",
+                    name="direccion_usuario",
+                    required=True,
+                    on_change=State.set_user_entered_direccion,
+                ),
                 rx.form.submit(
                     rx.cond((State.loader),                    
                     rx.button(

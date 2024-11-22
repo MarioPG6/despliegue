@@ -21,28 +21,55 @@ def index() -> rx.Component:
                         rx.icon("smile"),
                     )
                 ),        
-                rx.hstack(
-                    rx.image(src="logo.jpeg", width="300px", height="auto",ismap=True),
-                    rx.card(rx.text("Esta en en lugar correcto para buscar y encontar profesionales en su localidad!. Solo debes seguir estos sencillos pasos:"),
-                     rx.accordion.root(
-                        rx.accordion.item(
-                            header="Regístrate!",
-                            content="Te puedes registrar como usuario si deseas buscar y contratar profesionales en tu localidad, o como trabajador si quieres ofrecer tus servicios profesionales",
+                rx.vstack(
+                    rx.text("A la vuelta de un Click! aquí encontrará los mejores pintores, cerrajeros y maestros para sus obras!"),
+                    rx.text("Estás en en lugar correcto para buscar y encontar trabajadores en tu localidad!. Solo debes seguir estos sencillos pasos:"),
+                    rx.text(""),
+                ),                    
+                rx.hstack(                    
+                    rx.vstack(
+                        rx.image(src="obras.jpg", width="250px", height="auto"),                    
+                        rx.image(src="pintor.jpg",width="250px", height="auto"),
+                    ),                                        
+                    rx.vstack(
+                        rx.card(
+                        rx.hstack(
+                            rx.text.strong("1. Regístrate"),
+                            rx.icon("user-plus"),
+                        ),    
+                        rx.text("Te puedes registrar como usuario si deseas buscar y contratar trabajadores en tu localidad, o como trabajador si quieres ofrecer tus servicios profesionales"),
                         ),
-                        rx.accordion.item(
-                            header="Busca por categoría o localidad",
-                            content="Te ofrecemos varias opciones para que puedas buscar cualquier servicio directamente en tu localidad, o puedes también buscar por las diferentes categorías que tenemos",
+                        rx.card(
+                        rx.hstack(
+                            rx.text.strong("2. Busca por categoría o localidad"),
+                            rx.icon("map-pin"),
+                        ),    
+                        rx.text("Te ofrecemos varias opciones para que puedas buscar cualquier servicio directamente en tu localidad, o puedes también buscar por las diferentes categorías que tenemos"),
                         ),
-                        rx.accordion.item(
-                            header="Ponte en contacto con los trabajadores",
-                            content="Una vez registrado, tendrás acceso al catálogo completo de trabajadores y podrás ponerte en contacto con ellos a través de teléfono, correo o viendo la dirección a dirigirte al sitio para el caso de estbalecimientos",
+                        rx.card(
+                        rx.hstack(                            
+                            rx.text.strong("3. Ponte en contacto con un trabajador!"),
+                            rx.icon("phone"),
+                        ),    
+                        rx.text("Una vez registrado, tendrás acceso al catálogo completo de trabajadores y podrás ponerte en contacto con ellos solamente haciendo 'Click' en un botón"),
                         ),
-                        width="300px",
-                        variant="soft",
-                    )
-                    
-                    ),                                       
-                    ),                    
+                        rx.card(
+                            rx.text.strong("Política de calidad"),
+                            rx.icon("award",size=32,color="yellow"),
+                            rx.text("Nuestros trabajadores son directamente seleccionados por nosotros para garantizar un estándar de calidad, se hace un delicado y cuidadoso proceso de aprobación, el cual inicluye verificación de datos de contacto, experiencia y conocimiento del servicio a prestar."),
+                        ),
+                        rx.card(
+                            rx.text.strong("Pagos"),
+                            rx.icon("circle-dollar-sign",size=32,color="yellow"),
+                            rx.text("Como trabajador solo debes pagar una sucripción mensual de 10.000 COP, y nuestros usuarios podrán contactarte a la vuelta de un Click!"),
+                            rx.text("A continuación puedes ver nuestros métodos de pago:"),
+                            rx.image(src="daviplata-nequi.jpg",width="160px", height="auto"),
+                            
+
+                        ),                          
+                    ),        
+                ),                             
+
                 bg=rx.color("accent", 1),
                 width="100%",
                 height="100%",

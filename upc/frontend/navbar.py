@@ -63,7 +63,8 @@ def navbar() -> rx.Component:
                         ),
                         rx.menu.content(
                             rx.menu.item(rx.text(State.user_name)),
-                            rx.menu.item("Perfil", on_click=rx.redirect(f"/perfil_usuario/{State.login_id}")),                                                        
+                            rx.menu.item("Perfil", on_click=rx.redirect(f"/perfil_usuario/{State.login_id}")),
+                            rx.menu.item("Servicios", on_click=rx.redirect(f"/servicios-usuario/")),                                                        
                             rx.menu.separator(),
                             rx.menu.item("Cerrar sesión",on_click=State.logout),
                         ),
@@ -83,9 +84,31 @@ def navbar() -> rx.Component:
                         ),
                         rx.menu.content(
                             rx.menu.item(rx.text(State.user_name)),
-                             rx.menu.item("Perfil", on_click=rx.redirect(f"/detalles/{State.login_id}")),                                                         
+                            rx.menu.item("Perfil", on_click=rx.redirect(f"/detalles/{State.login_id}")),
+                            rx.menu.item("Servicios", on_click=rx.redirect(f"/servicios-trabajador/")),                                                         
                             rx.menu.separator(),
                             rx.menu.item("Cerrar sesión",on_click=State.logout),
+                        ),
+                        justify="end",
+                    ),
+                    ),
+                    rx.cond(
+                        ( ((State.user_email == 'mariostteven@gmail.com') | (State.user_email == 'santurron2004@gmail.com') | (State.user_email == 'dylan-lozano@upc.edu.co'))) &  (State.authenticated),                                  
+                    
+                        rx.menu.root(
+                        rx.menu.trigger(
+                            rx.icon_button(
+                                rx.icon("user-round-cog"),               
+                                size="2",
+                                radius="full",
+                            )
+                        ),
+                        rx.menu.content(                            
+                            rx.menu.item("Validador", on_click=rx.redirect(f"/validador")),
+                            rx.menu.separator(), 
+                            rx.menu.item("Administración", on_click=rx.redirect(f"/admin")),
+                            rx.menu.separator(), 
+                            rx.menu.item("Gerencia", on_click=rx.redirect(f"/gerente")),                                                         
                         ),
                         justify="end",
                     ),
@@ -145,7 +168,8 @@ def navbar() -> rx.Component:
                         ),
                         rx.menu.content(
                             rx.menu.item(rx.text(State.user_name)),
-                            rx.menu.item("Perfil", on_click=rx.redirect(f"/perfil_usuario/{State.login_id}")),                                                        
+                            rx.menu.item("Perfil", on_click=rx.redirect(f"/perfil_usuario/{State.login_id}")),
+                            rx.menu.item("Servicios", on_click=rx.redirect(f"/servicios-usuario/")),                                                        
                             rx.menu.separator(),
                             rx.menu.item("Cerrar sesión",on_click=State.logout),
                         ),
@@ -165,9 +189,31 @@ def navbar() -> rx.Component:
                         ),
                         rx.menu.content(
                             rx.menu.item(rx.text(State.user_name)),
-                             rx.menu.item("Perfil", on_click=rx.redirect(f"/detalles/{State.login_id}")),                                                         
+                            rx.menu.item("Perfil", on_click=rx.redirect(f"/detalles/{State.login_id}")),
+                            rx.menu.item("Servicios", on_click=rx.redirect(f"/servicios-trabajador/")),                                                         
                             rx.menu.separator(),
                             rx.menu.item("Cerrar sesión",on_click=State.logout),
+                        ),
+                        justify="end",
+                    ),
+                    ),
+                    rx.cond(
+                        ( ((State.user_email == 'mariostteven@gmail.com') | (State.user_email == 'santurron2004@gmail.com') | (State.user_email == 'dylan-lozano@upc.edu.co'))) &  (State.authenticated),                                  
+                    
+                        rx.menu.root(
+                        rx.menu.trigger(
+                            rx.icon_button(
+                                rx.icon("user-round-cog"),               
+                                size="2",
+                                radius="full",
+                            )
+                        ),
+                        rx.menu.content(                            
+                            rx.menu.item("Validador", on_click=rx.redirect(f"/validador")),
+                            rx.menu.separator(), 
+                            rx.menu.item("Administración", on_click=rx.redirect(f"/admin")),
+                            rx.menu.separator(), 
+                            rx.menu.item("Gerencia", on_click=rx.redirect(f"/gerente")),                                                         
                         ),
                         justify="end",
                     ),

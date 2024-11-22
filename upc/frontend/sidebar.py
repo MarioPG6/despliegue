@@ -1,6 +1,7 @@
 import reflex as rx
 
 
+
 def sidebar_item(
     text: str, icon: str, href: str
 ) -> rx.Component:
@@ -29,16 +30,9 @@ def sidebar_item(
 
 def sidebar_items() -> rx.Component:
     return rx.vstack(
-        sidebar_item("Reparaciones", "wrench", "/reparaciones"),
         sidebar_item("Cerrajería", "key-round", "/cerrajeria"),
-        sidebar_item("Instalaciones", "drill", "/instalaciones"),
         sidebar_item("Pintura", "paint-roller", "/pintura"),
         sidebar_item("Obras", "hard-hat", "/obras"),
-        sidebar_item("Belleza y peluquería", "scissors", "/belleza_peluqueria"),
-        sidebar_item("Clases", "library", "/clases"),
-        sidebar_item("Electricistas", "plug", "/electricistas"),
-        sidebar_item("Aseo", "trash", "/aseo"),
-        sidebar_item("Plomería", "shower-head", "/plomeria"),
         spacing="1",
         width="100%",
     )

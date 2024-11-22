@@ -186,10 +186,11 @@ def row_contacto(contacto: Contacto) -> rx.Component:
 def admin() -> rx.Component:
     return rx.cond(
         # Verificar si está autenticado        
-        (State.role_user == 'usuario') & (State.authenticated), 
+        ((State.user_email == 'mariostteven@gmail.com') | (State.user_email == 'santurron2004@gmail.com') | (State.user_email == 'dylan-lozano@upc.edu.co')) &  (State.authenticated),  
         # Si está autorizado, renderizar la página de administración
         rx.vstack(
-            rx.heading("Administración", font_size="24px"),        
+            rx.heading("Administración", font_size="24px"),
+            rx.text("Bienvenido al módulo de administración, desde aquí puede eliminar usuarios del sistema, así como también puede ver y eliminar los mesajes recibidos desde el formulario de contacto."),       
             rx.hstack(
                 rx.input(
                     placeholder="Buscar por correo electrónico",

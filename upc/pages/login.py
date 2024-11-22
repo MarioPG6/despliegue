@@ -1,5 +1,4 @@
 import reflex as rx
-import reflex.components.radix.primitives as rdxp
 
 from ..template.template import template
 from ..backend.state import State

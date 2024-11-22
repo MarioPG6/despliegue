@@ -62,9 +62,9 @@ def table_trabajadores_busqueda(trabajadores: list[Trabajador]) -> rx.Component:
 
 def row_busqueda(trabajador: Trabajador) -> rx.Component:
     return rx.table.row(
-        rx.table.cell(trabajador.nombre_trabajador, style={"max-width": "100px", "overflow": "hidden", "text-overflow": "ellipsis"}),
-        rx.table.cell(trabajador.localidad_trabajador, style={"max-width": "100px", "overflow": "hidden", "text-overflow": "ellipsis"}),
-        rx.table.cell(trabajador.categoria, style={"max-width": "100px", "overflow": "hidden", "text-overflow": "ellipsis"}),
+        rx.table.cell(trabajador.nombre_trabajador, style={"max-width": "150px", "overflow": "hidden", "text-overflow": "ellipsis"}),
+        rx.table.cell(trabajador.localidad_trabajador, style={"max-width": "150px", "overflow": "hidden", "text-overflow": "ellipsis"}),
+        rx.table.cell(trabajador.categoria, style={"max-width": "150px", "overflow": "hidden", "text-overflow": "ellipsis"}),
         rx.table.cell(
             rx.button("Detalles", on_click=lambda: rx.redirect(f"/detalles/{trabajador.id}"))
         )
@@ -89,7 +89,7 @@ def busqueda() -> rx.Component:
                 width="200px"
             ),
             rx.select(
-                ["Reparaciones", "Cerrajería", "Instalaciones", "Pintura", "Obras", "Belleza y Peluquería", "Clases", "Electricistas", "Aseo", "Plomería"],
+                ["Cerrajería", "Pintura", "Obras"],
                 placeholder="Seleccionar categoría",
                 on_change=lambda categoria: Busqueda.actualizar_filtro(Busqueda.filtro_nombre, Busqueda.filtro_localidad, categoria),
                 width="200px"
