@@ -20,20 +20,25 @@ def index() -> rx.Component:
                         rx.text.strong(State.user_name),
                         rx.icon("smile"),
                     )
-                ),        
-                rx.vstack(
-                    rx.text("A la vuelta de un Click! aquí encontrará los mejores pintores, cerrajeros y maestros para sus obras!"),
-                    rx.text("Estás en en lugar correcto para buscar y encontar trabajadores en tu localidad!. Solo debes seguir estos sencillos pasos:"),
-                    rx.text(""),
-                ),                    
+                ),
+                rx.hstack(
+                    rx.image(src="banner.jpg", width="500px", height="auto"),    
+                    rx.vstack(
+                        rx.text("A la vuelta de un Click! aquí encontrará los mejores pintores, cerrajeros y maestros para sus obras!"),
+                        rx.text("Estás en en lugar correcto para buscar y encontar trabajadores en tu localidad!."),
+                        rx.text(""),
+                    ),
+                ),                        
                 rx.hstack(                    
                     rx.vstack(
+                        rx.text(""),
                         rx.image(src="obras.jpg", width="250px", height="auto"),                    
                         rx.image(src="pintor.jpg",width="250px", height="auto"),
                     ),                                        
                     rx.vstack(
+                        rx.text(""),
                         rx.card(
-                        rx.hstack(
+                        rx.hstack(                            
                             rx.text.strong("1. Regístrate"),
                             rx.icon("user-plus"),
                         ),    

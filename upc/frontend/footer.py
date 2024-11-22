@@ -10,7 +10,7 @@ def footer_items() -> rx.Component:
         rx.heading(
             "Sobre nosotros", size="4", weight="bold", as_="h3"
         ),
-        footer_item("Conoce el equipo", "/#"),
+        footer_item("Conoce el equipo", "/nosotros"),
         footer_item("Historia", "/historia"),        
         spacing="4",
         text_align=["center", "center", "start"],

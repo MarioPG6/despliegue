@@ -15,6 +15,7 @@ from .pages import validador
 from .pages import servicios_usuario
 from .pages import servicios_trabajador
 from .pages import gerente
+from .pages import nosotros
 
 _all_ = [
     'contacto',
@@ -34,4 +35,5 @@ _all_ = [
     'servicios_usuario',
     'servicios_trabajador',
     'gerente',
+    'nosotros',
 ]

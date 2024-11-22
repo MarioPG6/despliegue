@@ -716,7 +716,7 @@ class State(rx.State):
     Este método sirve para enviar correo al usuario el link de verificación
     '''
     def send_verification_email(self, email, token):
-        verification_link = f"https://alavueltadeunclick.com:3000/verify/{token}"
+        verification_link = f"http://alavueltadeunclick.com:3000/verify/{token}"
         msg = EmailMessage()
         msg.set_content(f"Haga clic para verificar su cuenta: {verification_link}")
         msg['Subject'] = "[alavueltadeunclic - Verificación de cuenta]"

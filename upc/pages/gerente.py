@@ -65,7 +65,7 @@ def bar_features(servicio: Servicio):
 @rx.page(route="/gerente", on_load=State.get_estado_servicios())
 @template
 def gerente() -> rx.Component:   
-    return rx.cond( ((State.user_email == 'mariostteven@gmail.com') | (State.user_email == 'santurron2004@gmail.com') | (State.user_email == 'dylan-lozano@upc.edu.co')) &  (State.authenticated), 
+    return rx.cond(  ((State.user_email == 'mariostteven@gmail.com') | (State.user_email == 'santurron2004@gmail.com') | (State.user_email == 'dylan-lozano@upc.edu.co') | (State.user_email == 'laura-cardenas11@upc.edu.co') | (State.user_email == 'juandavidmurray30@gmail.com')) &  (State.authenticated), 
             rx.vstack(
             rx.heading("Gerencia de Servicios", font_size="24px"),
             rx.text("En este módulo puede revisar el estado de los servicios a nivel general, recuerde prestar especial atención a servicios abiertos e iniciados:", font_size="14px"),            

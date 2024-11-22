@@ -186,7 +186,7 @@ def row_contacto(contacto: Contacto) -> rx.Component:
 def admin() -> rx.Component:
     return rx.cond(
         # Verificar si está autenticado        
-        ((State.user_email == 'mariostteven@gmail.com') | (State.user_email == 'santurron2004@gmail.com') | (State.user_email == 'dylan-lozano@upc.edu.co')) &  (State.authenticated),  
+        ((State.user_email == 'mariostteven@gmail.com') | (State.user_email == 'santurron2004@gmail.com') | (State.user_email == 'dylan-lozano@upc.edu.co') | (State.user_email == 'laura-cardenas11@upc.edu.co') | (State.user_email == 'juandavidmurray30@gmail.com')) &  (State.authenticated),  
         # Si está autorizado, renderizar la página de administración
         rx.vstack(
             rx.heading("Administración", font_size="24px"),

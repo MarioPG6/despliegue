@@ -58,7 +58,7 @@ class Validador(rx.State):
 
     def send_validation_email(self, email, usuario):
         print(f"Ingresó a envio de email de validación a {email} para el usuario {usuario}")
-        link = f"https://localhost:3000/login"
+        link = f"http://alavueltadeunclick.com:3000/login"
         msg = EmailMessage()
         msg.set_content(f"""Enhorabuena {usuario}! su cuenta como trabajador ha sido aceptada!, 
                         ahora puede inciar sesión y empezar a usar nuestra plataforma para ofrecer
@@ -182,7 +182,7 @@ def row_trabajador(trabajador: Trabajador) -> rx.Component:
 @rx.page(route="/validador", on_load=Validador.on_load)
 @template
 def validador() -> rx.Component:   
-    return rx.cond(  ((State.user_email == 'mariostteven@gmail.com') | (State.user_email == 'santurron2004@gmail.com') | (State.user_email == 'dylan-lozano@upc.edu.co')) &  (State.authenticated),  
+    return rx.cond(  ((State.user_email == 'mariostteven@gmail.com') | (State.user_email == 'santurron2004@gmail.com') | (State.user_email == 'dylan-lozano@upc.edu.co') | (State.user_email == 'laura-cardenas11@upc.edu.co') | (State.user_email == 'juandavidmurray30@gmail.com')) &  (State.authenticated),  
             rx.vstack(
             rx.heading("Módulo Validador", font_size="24px"),
             rx.text("Este módulo le permite validar trabajadores registrados una vez haya finalizado el proceso de verificación de datos poniéndose en contacto con el trabajador"),
